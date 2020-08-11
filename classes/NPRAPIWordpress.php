@@ -896,21 +896,25 @@ class NPRAPIWordpress extends NPRAPI {
                 break;
               case 'multimedia':
                 if (!empty($multimedia[$reference])) {
-                  $fightml = "<figure class=\"wp-block-embed is-type-video\"><div class=\"wp-block-embed__wrapper\">";
-                  $returnary['has_video'] = TRUE;
-                  $fightml .= "<div style=\"padding-bottom: 56.25%; position:relative; height:0;\"><iframe src=\"https://www.npr.org/embedded-video?storyId=" . (int)$story->id . "&mediaId=$reference&jwMediaType=music\" frameborder=\"0\" scrolling=\"no\" style=\"position:absolute; top:0; left:0; width:100%; height:100%;i\" marginwidth=0 marginheight=0 ></iframe></div>";
-                  $figcaption = '';
-                  if (!empty( (string)$multimedia[$reference]['credit']) || !empty( (string)$multimedia[$reference]['caption'] ) ) {
-                    if (!empty( trim((string)$multimedia[$reference]['credit']))) {
-                      $figcaption .= "<cite>" . trim((string) $multimedia[$reference]['credit']) . "</cite>";
+                  // check permissions
+                  $perms = $multimedia[$reference]['permissions'];
+                  if (($perms->embed->allow != false)) { 
+                    $fightml = "<figure class=\"wp-block-embed is-type-video\"><div class=\"wp-block-embed__wrapper\">";
+                    $returnary['has_video'] = TRUE;
+                    $fightml .= "<div style=\"padding-bottom: 56.25%; position:relative; height:0;\"><iframe src=\"https://www.npr.org/embedded-video?storyId=" . (int)$story->id . "&mediaId=$reference&jwMediaType=music\" frameborder=\"0\" scrolling=\"no\" style=\"position:absolute; top:0; left:0; width:100%; height:100%;\" marginwidth=0 marginheight=0 ></iframe></div>";
+                    $figcaption = '';
+                    if (!empty( (string)$multimedia[$reference]['credit']) || !empty( (string)$multimedia[$reference]['caption'] ) ) {
+                      if (!empty( trim((string)$multimedia[$reference]['credit']))) {
+                        $figcaption .= "<cite>" . trim((string) $multimedia[$reference]['credit']) . "</cite>";
+                      }
+                      if (!empty( (string)$multimedia[$reference]['caption'])) {
+                        $figcaption .= trim((string) $multimedia[$reference]['caption']);
+                      }
+                      $figcaption = !empty($figcaption) ? "<figcaption>$figcaption</figcaption>" : "";
                     }
-                    if (!empty( (string)$multimedia[$reference]['caption'])) {
-                      $figcaption .= trim((string) $multimedia[$reference]['caption']);
-                    }
-                    $figcaption = !empty($figcaption) ? "<figcaption>$figcaption</figcaption>" : "";
+                    $fightml .= "</div>$figcaption</figure>\n";
+                    $body_with_layout .= $fightml;
                   }
-                  $fightml .= "</div>$figcaption</figure>\n";
-                  $body_with_layout .= $fightml;
                 }
                 break;
               default:
