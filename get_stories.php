@@ -179,12 +179,10 @@ class DS_NPR_API {
     }
 
 	/**
-	 * Register the admin menu for "Get NPR Stories" for the post type assigned as the "Pull Post Type"
+	 * Register the admin menu for "Get NPR Stories"
 	 */
     public function admin_menu() {
-        $pull_post_type = $this->nprstory_get_pull_post_type();
-        $slug_args = ( $pull_post_type != 'post' ) ? "?post_type=$pull_post_type" : '';
-        add_submenu_page( "edit.php$slug_args", 'Get NPR Stories', 'Get NPR Stories', 'edit_posts', 'get-npr-stories',   'nprstory_get_stories' );
+        add_posts_page( 'Get NPR Stories', 'Get NPR Stories', 'edit_posts', 'get-npr-stories',   'nprstory_get_stories' );
     }
 
 }
