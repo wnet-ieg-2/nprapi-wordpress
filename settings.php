@@ -228,25 +228,6 @@ function nprstory_api_select_category_callback( $i ) {
 	echo $select;
 }
 
-function nprstory_api_select_category_callback($i) {
-   $selected =get_option( 'ds_npr_query_category_' . $i );
-   settype($selected, "integer");
-    $args = array(
-        'show_option_none' => __( 'Select category', '' ),
-		'name'             => 'ds_npr_query_category_'.$i,
-		'hierarchical'      => true,
-        'show_count'       => 0,
-        'orderby'          => 'name',
-        'echo'             => 0,
-		'selected'         => $selected,
-		'hide_empty'       => 0,
-		'multiple'         => true
-    );
-     $select  = wp_dropdown_categories( $args ); 
-
-	 echo $select; 	 
-}
-
 function nprstory_api_query_callback( $i ) {
 	$option = get_option( 'ds_npr_query_' . $i );
 	$name = 'ds_npr_query_' . $i;
