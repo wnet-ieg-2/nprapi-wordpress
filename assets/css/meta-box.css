@@ -43,7 +43,7 @@ button.link-effect {
 	box-shadow: 0 3px 5px rgba(0,0,0,.2);
 }
 .ui-datepicker .ui-datepicker-header {
-	order: none;
+	border: none;
 }
 .ui-datepicker-calendar .ui-state-default {
 	text-decoration: none;
