@@ -2,7 +2,7 @@
  * Styles for the NPR Story API meta box
  */
 #ds_npr_document_meta ul ul {
-	argin-top: 6px;
+	margin-top: 6px;
 }
 #ds_npr_document_meta ul ul ul {
 	padding-left: 24px;
