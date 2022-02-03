@@ -82,39 +82,28 @@ function nprstory_api_push( $post_ID, $post ) {
  * @param unknown_type $post_ID
  */
 function nprstory_api_delete( $post_ID ) {
+	if ( !current_user_can( 'delete_others_posts' ) ) {
+		wp_die(
+			__('You do not have permission to delete posts in the NPR API. Users that can delete other users\' posts have that ability: administrators and editors.'),
+			__('NPR Story API Error'),
+			403
+		);
+	}
 	$push_post_type = get_option( 'ds_npr_push_post_type' );
 	if ( empty( $push_post_type ) ) {
 		$push_post_type = 'post';
 	}
 
-	$api_id_meta = get_post_meta( $post_ID, NPR_STORY_ID_META_KEY );
-	if ( isset( $api_id_meta[0] ) ) {
-		$api_id = $api_id_meta[0];
-	} else {
-		$api_id = null;
-	}
+	$api_id = get_post_meta( $post_ID, NPR_STORY_ID_META_KEY, true );
 
 	$post = get_post( $post_ID );
 	//if the push url isn't set, don't even try to delete.
 	$push_url = get_option( 'ds_npr_api_push_url' );
 	if ( $post->post_type == $push_post_type && !empty( $push_url ) && !empty( $api_id ) ) {
-		if ( !current_user_can( 'delete_others_posts' ) ) {
-			wp_die(
-				__('You do not have permission to delete posts in the NPR API. Users that can delete other users\' posts have that ability: administrators and editors.'),
-				__('NPR Story API Error'),
-				403
-			);
-		}
-		// For now, only submit regular posts, and only on publish.
-		if ( $post->post_type != 'post' || $post->post_status != 'publish' ) {
-			return;
-		}
 		$api = new NPRAPIWordpress();
 		$retrieved = get_post_meta( $post_ID, NPR_RETRIEVED_STORY_META_KEY, true );
 
-		if ( empty( $retrieved ) || $retrieved == 0 ) {
-			$api->send_request( $api->create_NPRML( $post ), $post_ID );
-		} else {
+		if ( empty( $retrieved ) ) {
 			nprstory_error_log( 'Pushing delete action to the NPR Story API for the story with post_ID ' . $post_ID );
 			$api->send_delete( $api_id );
 		}
