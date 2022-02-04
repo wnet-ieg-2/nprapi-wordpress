@@ -2,10 +2,10 @@
 
 A collection of tools for publishing from and to NPR's Story API. [Find this plugin on the Wordpress.org Plugin Repository](https://wordpress.org/plugins/npr-story-api/).
 
-Contributors: nprds, innlabs  
+Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver 
 Requires at least: 3.8.14  
-Tested up to: 4.9  
-Stable tag: 1.8  
+Tested up to: 5.8.3  
+Stable tag: 1.9  
 License: GPLv2  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -17,7 +17,7 @@ NPR's API is a content API, which essentially provides a structured way for othe
 
 Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew). 
 
-The WordPress plugin is being developed as an Open Source plugin by NPR. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please contact [NPR station relations](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew).
+The WordPress plugin was originally developed as an Open Source plugin by NPR Digital Services and is now supported by developers with NPR member stations working within the Open Public Media group. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please visit our [GitHub repository](https://github.com/OpenPublicMedia/nprapi-wordpress) and post an issue or contribute a pull request.
 
 ## Installation
 
@@ -69,6 +69,16 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+
+### V1.9
+
+* Document transition from NPR DS ownership to NPR Member Station developers [PR #9](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/9) 
+* Set a default category for each query when using the 'post' type [PR #7](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/7)
+* Generate WP posts with rich layout including multimedia etc [PR #4](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/4)
+* Change the image_guid variable name to match content [issue](https://github.com/OpenPublicMedia/nprapi-wordpress/commit/1dec12ff5774bb6ec3017799980dddb7b8ff556e )
+* Resolve an error raised when any non-admin user tries to trash a WP post [PR #3](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/3)
+* Styling and formatting and code normalization [PR #1](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/1)
+
 
 ### V1.8
 
