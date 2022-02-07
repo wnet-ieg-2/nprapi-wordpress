@@ -1,5 +1,5 @@
 {
-	"name"       : "openpublicmedia/nprapi-wordpress",
+	"name"       : "openpublicmedia/npr-story-api",
 	"description": "Access the NPR API from within Wordpress",
 	"homepage"   : "https://github.com/OpenPublicMedia/nprapi-wordpress/",
 	"type"       : "wordpress-plugin",
