@@ -144,15 +144,15 @@ class NPRAPIWordpress extends NPRAPI {
 
 				$npr_has_layout = FALSE;
 				$npr_has_video = FALSE;
-				if ( $use_npr_layout ) {
-					// get the "NPR layout" version if available and the "use rich layout" option checked in settings
-					$npr_layout = $this->get_body_with_layout( $story );
-					if ( !empty( $npr_layout['body'] ) ) {
-						$story->body = $npr_layout['body'];
-						$npr_has_layout = TRUE;
-						$npr_has_video = $npr_layout['has_video'];
-					}
+				// get the "NPR layout" version if available and the "use rich layout" option checked in settings
+				// if option is not checked, return the text with HTML
+				$npr_layout = $this->get_body_with_layout( $story, $use_npr_layout );
+				if ( !empty( $npr_layout['body'] ) ) {
+					$story->body = $npr_layout['body'];
+					$npr_has_layout = $npr_layout['has_layout'];
+					$npr_has_video = $npr_layout['has_video'];
 				}
+
 				// add the transcript
 				$story->body .= $this->get_transcript_body( $story );
 
@@ -304,7 +304,7 @@ class NPRAPIWordpress extends NPRAPI {
 					$post_id = wp_insert_post( $args );
 					wp_set_post_terms( $post_id, $wp_category_ids, 'category', true );
 
-					if ($npr_has_layout) {
+					if ( $npr_has_layout ) {
 						// re-enable the built-in content stripping
 						kses_init_filters();
 					}
@@ -676,52 +676,87 @@ class NPRAPIWordpress extends NPRAPI {
 	}
 
 	/**
+	 * Retrieve a transcript of an article from the NPR API using a provided link
 	 *
+	 * @param object $transcript
+	 *   An NPR Element object
+	 *
+	 * @return string
+	 *   The transcript formatted as a string
+	 */
+	function get_transcript_from_link( $transcript ) {
+		$transcript_body = '';
+		foreach ( (array)$transcript->link as $link ) {
+			if ( !isset( $link->type ) || 'api' !== $link->type ) {
+				continue;
+			}
+			$response = wp_remote_get( $link->value );
+			if ( is_wp_error( $response ) ) {
+				/**
+				 * @var WP_Error $response
+				 */
+				$code = $response->get_error_code();
+				$message = $response->get_error_message();
+				$message = sprintf( 'Error requesting story transcript via API URL: %s (%s [%d])', $link->value, $message,  $code );
+				error_log( $message );
+				continue;
+			}
+			$body_xml = simplexml_load_string( $response[ 'body' ] );
+			if ( !empty( $body_xml->paragraph ) ) {
+				$transcript_body .= "<p><strong>Transcript :</strong></p>";
+				foreach ( $body_xml->paragraph as $paragraph ) {
+					$transcript_body .= $this->add_paragraph_tag( $paragraph ) . "\n";
+				}
+			}
+		}
+		return $transcript_body;
+	}
+	/**
 	 * This function will check a story to see if there are transcripts that should go with it, if there are
-	 * we'll return the transcript as one big strang with Transcript at the top and each paragraph separated by <p>
+	 * we'll return the transcript as one big string with Transcript at the top and each paragraph separated by <p>
 	 *
 	 * @param string $story
 	 * @return string
 	 */
 	function get_transcript_body( $story ) {
 		$transcript_body = "";
-		if ( !empty( $story->transcript ) && is_array( $story->transcript ) ) {
-			foreach ( $story->transcript as $transcript ) {
-				if ( empty( $transcript->link ) ) {
-					continue;
+		if ( !empty( $story->transcript ) ) {
+			if ( is_array( $story->transcript ) ) {
+				foreach ( $story->transcript as $transcript ) {
+					if ( empty( $transcript->link ) ) {
+						continue;
+					}
+					$transcript_body .= $this->get_transcript_from_link( $transcript );
 				}
-				foreach ( (array)$transcript->link as $link ) {
-					if ( !isset( $link->type ) || 'api' !== $link->type ) {
-						continue;
-					}
-					$response = wp_remote_get( $link->value );
-					if ( is_wp_error( $response ) ) {
-						/**
-						 * @var WP_Error $response
-						 */
-						$code = $response->get_error_code();
-						$message = $response->get_error_message();
-						$message = sprintf( 'Error requesting story transcript via API URL: %s (%s [%d])', $link->value, $message,  $code );
-						error_log( $message );
-						continue;
-					}
-					$body_xml = simplexml_load_string( $response[ 'body' ] );
-					if ( empty( $body_xml->paragraph ) || !is_array( $body_xml->paragraph ) ) {
-						continue;
-					}
-					$transcript_body .= "<p><strong>Transcript :</strong></p>";
-					foreach ( $body_xml->paragraph as $paragraph ) {
-						$transcript_body .= '<p>' . ( strip_tags( $paragraph ) ) . '</p>';
-					}
-				}
+			} else {
+				$transcript_body .= $this->get_transcript_from_link( $story->transcript );
 			}
-
 		}
 		return $transcript_body;
 	}
 
 	/**
+	 * Format and return a paragraph of text from an associated NPR API article
+	 * This function checks if the text is already wrapped in an HTML element (e.g. <h3>, <div>, etc.)
+	 * If not, the return text will be wrapped in a <p> tag
 	 *
+	 * @param string $p
+	 *   A string of text
+	 *
+	 * @return string
+	 *   A formatted string of text
+	 */
+	function add_paragraph_tag( $p ) {
+		$output = '';
+		if ( preg_match( '/^<[a-zA-Z0-9 \="\-_\']+>.+<[a-zA-Z0-9\/]+>$/', $p ) ) {
+			$output = $p;
+		} else {
+			$output = '<p>' . $p . '</p>';
+		}
+		return $output;
+	}
+
+	/**
 	 * This function will check a story to see if it has a layout object, if there is
 	 * we'll format the body with any images, externalAssets, or htmlAssets inserted in the order they are in the layout
 	 * and return an array of the transformed body and flags for what sort of elements are returned
@@ -729,249 +764,339 @@ class NPRAPIWordpress extends NPRAPI {
 	 * @param NPRMLEntity $story Story object created during import
 	 * @return array with reconstructed body and flags describing returned elements
 	 */
-	function get_body_with_layout( $story ) {
+	function get_body_with_layout( $story, $layout ) {
 		$returnary = [ 'body' => FALSE, 'has_layout' => FALSE, 'has_image' => FALSE, 'has_video' => FALSE, 'has_external' => FALSE ];
 		$body_with_layout = "";
-		if ( !empty( $story->layout ) ) {
-			// simplify the arrangement of the storytext object
-			$layoutarry = [];
-			foreach( $story->layout->storytext as $type => $elements ) {
-				if ( !is_array( $elements ) ) {
-					$elements = [ $elements ];
-				}
-				foreach ( $elements as $element ) {
-					$num = $element->num;
-					$reference = $element->refId;
-					if ( $type == 'text' ) {
-						// only paragraphs don't have a refId, they use num instead
-						$reference = $element->paragraphNum;
+		if ( $layout ) {
+			if ( !empty( $story->layout->storytext ) ) {
+				// simplify the arrangement of the storytext object
+				$layoutarry = [];
+				foreach( $story->layout->storytext as $type => $elements ) {
+					if ( !is_array( $elements ) ) {
+						$elements = [ $elements ];
 					}
-					$layoutarry[ (int)$num ] = [ 'type' => $type, 'reference' => $reference ];
-				}
-			}
-			ksort($layoutarry);
-			$returnary['has_layout'] = TRUE;
-
-			$paragraphs = [];
-			$num = 1;
-			foreach ( $story->textWithHtml->paragraphs as $paragraph ) {
-				$partext = (string)$paragraph->value;
-				$paragraphs[ $num ] = $partext;
-				$num++;
-			}
-
-			$storyimages = [];
-			if ( isset($story->image ) ) {
-				$storyimages_array = [];
-				if ( isset( $story->image->id ) ) {
-					$storyimages_array[] = $story->image;
-				} else {
-					// sometimes there are multiple objects
-					foreach ( (array)$story->image as $stryimage ) {
-						if ( isset( $stryimage->id ) ) {
-							$storyimages_array[] = $stryimage;
+					foreach ( $elements as $element ) {
+						$num = $element->num;
+						$reference = $element->refId;
+						if ( $type == 'text' ) {
+							// only paragraphs don't have a refId, they use num instead
+							$reference = $element->paragraphNum;
 						}
+						$layoutarry[ (int)$num ] = [ 'type' => $type, 'reference' => $reference ];
 					}
 				}
-				foreach ( $storyimages_array as $image ) {
-					$image_url = FALSE;
-					$is_portrait = FALSE;
-					if ( !empty( $image->enlargement ) ) {
-						$image_url = $image->enlargement->src;
-					}
-					if ( !empty( $image->crop ) ) {
-						if ( !is_array( $image->crop ) ) {
-							$cropobj = $image->crop;
-							unset( $image->crop );
-							$image->crop = [ $cropobj ];
-						}
-						foreach ( $image->crop as $crop ) {
-							if ( empty( $crop->primary ) ) {
-								continue;
+				ksort( $layoutarry );
+				$returnary['has_layout'] = TRUE;
+
+				$paragraphs = [];
+				$num = 1;
+				foreach ( $story->textWithHtml->paragraphs as $paragraph ) {
+					$partext = (string)$paragraph->value;
+					$paragraphs[ $num ] = $partext;
+					$num++;
+				}
+
+				$storyimages = [];
+				if ( isset( $story->image ) ) {
+					$storyimages_array = [];
+					if ( isset( $story->image->id ) ) {
+						$storyimages_array[] = $story->image;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->image as $stryimage ) {
+							if ( isset( $stryimage->id ) ) {
+								$storyimages_array[] = $stryimage;
 							}
-							$image_url = $crop->src;
-							if ( $crop->type == 'custom' && ( (int)$crop->height > (int)$crop->width ) ) {
-								$is_portrait = TRUE;
+						}
+					}
+					foreach ( $storyimages_array as $image ) {
+						$image_url = FALSE;
+						$is_portrait = FALSE;
+						if ( !empty( $image->enlargement ) ) {
+							$image_url = $image->enlargement->src;
+						}
+						if ( !empty( $image->crop ) ) {
+							if ( !is_array( $image->crop ) ) {
+								$cropobj = $image->crop;
+								unset( $image->crop );
+								$image->crop = [ $cropobj ];
+							}
+							foreach ( $image->crop as $crop ) {
+								if ( empty( $crop->primary ) ) {
+									continue;
+								}
+								$image_url = $crop->src;
+								if ( $crop->type == 'custom' && ( (int)$crop->height > (int)$crop->width ) ) {
+									$is_portrait = TRUE;
+								}
+								break;
+							}
+						}
+						if ( empty( $image_url ) && !empty( $image->src ) ) {
+							$image_url = $image->src;
+						}
+						// add resizing to any npr-hosted image
+						if ( strpos( $image_url, 'media.npr.org' ) ) {
+							// remove any existing querystring
+							if ( strpos( $image_url, '?' ) ) {
+								$image_url = substr( $image_url, 0, strpos( $image_url, '?' ) );
+							}
+							$image_url .= ( !$is_portrait ? '?s=6' : '?s=12' );
+						}
+						$storyimages[ $image->id ] = (array)$image;
+						$storyimages[ $image->id ]['image_url'] = $image_url;
+						$storyimages[ $image->id ]['is_portrait'] = $is_portrait;
+					}
+				}
+
+				$externalAssets = [];
+				if ( isset( $story->externalAsset ) ) {
+					$externals_array = [];
+					if ( isset( $story->externalAsset->type ) ) {
+						$externals_array[] = $story->externalAsset;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->externalAsset as $extasset ) {
+							if ( isset( $extasset->type ) ) {
+								$externals_array[] = $extasset;
+							}
+						}
+					}
+					foreach ( $externals_array as $embed ) {
+						$externalAssets[ $embed->id ] = (array)$embed;
+					}
+				}
+
+				$htmlAssets = [];
+				if ( isset( $story->htmlAsset ) ) {
+					if ( isset( $story->htmlAsset->id ) ) {
+						$htmlAssets[ $story->htmlAsset->id ] = $story->htmlAsset->value;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->htmlAsset as $hasset ) {
+							if ( isset( $hasset->id ) ) {
+								$htmlAssets[ $hasset->id ] = $hasset->value;
+							}
+						}
+					}
+				}
+
+				$multimedia = [];
+				if ( isset( $story->multimedia ) ) {
+					$multims_array = [];
+					if ( isset( $story->multimedia->id ) ) {
+						$multims_array[] = $story->multimedia;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->multimedia as $multim ) {
+							if ( isset( $multim->id ) ) {
+								$multims_array[] = $multim;
+							}
+						}
+					}
+					foreach( $multims_array as $multim ) {
+						$multimedia[ $multim->id ] = (array)$multim;
+					}
+				}
+
+				$members = [];
+				if ( isset( $story->member ) ) {
+					$member_array = [];
+					if ( isset( $story->member->id ) ) {
+						$member_array[] = $story->member;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->member as $member ) {
+							if ( isset( $member->id ) ) {
+								$member_array[] = $member;
+							}
+						}
+					}
+					foreach( $member_array as $member ) {
+						$members[ $member->id ] = (array)$member;
+					}
+				}
+
+				$collection = [];
+				if ( isset( $story->collection ) ) {
+					$collect_array = [];
+					if ( isset( $story->collection->id ) ) {
+						$collect_array[] = $story->collection;
+					} else {
+						// sometimes there are multiple objects
+						foreach ( (array)$story->collection as $collect ) {
+							if ( isset( $collect->id ) ) {
+								$collect_array[] = $collect;
+							}
+						}
+					}
+					foreach( $collect_array as $collect ) {
+						$collection[ $collect->id ] = (array)$collect;
+					}
+				}
+
+				foreach ( $layoutarry as $ordernum => $element ) {
+					$reference = $element['reference'];
+					switch ( $element['type'] ) {
+						case 'text':
+							if ( !empty( $paragraphs[ $reference ] ) ) {
+								$body_with_layout .= $this->add_paragraph_tag( $paragraphs[ $reference ] ) . "\n";
 							}
 							break;
-						}
-					}
-					if ( empty( $image_url ) && !empty( $image->src ) ) {
-						$image_url = $image->src;
-					}
-					// add resizing to any npr-hosted image
-					if ( strpos( $image_url, 'media.npr.org' ) ) {
-						// remove any existing querystring
-						if ( strpos( $image_url, '?' ) ) {
-							$image_url = substr( $image_url, 0, strpos( $image_url, '?' ) );
-						}
-						$image_url .= ( !$is_portrait ? '?s=6' : '?s=12' );
-					}
-					$storyimages[ $image->id ] = (array)$image;
-					$storyimages[ $image->id ]['image_url'] = $image_url;
-					$storyimages[ $image->id ]['is_portrait'] = $is_portrait;
-				}
-			}
-
-			$externalAssets = [];
-			if ( isset( $story->externalAsset ) ) {
-				$externals_array = [];
-				if ( isset( $story->externalAsset->type ) ) {
-					$externals_array[] = $story->externalAsset;
-				} else {
-					// sometimes there are multiple objects
-					foreach ( (array)$story->externalAsset as $extasset ) {
-						if ( isset( $extasset->type ) ) {
-							$externals_array[] = $extasset;
-						}
-					}
-				}
-				foreach ( $externals_array as $embed ) {
-					$externalAssets[ $embed->id ] = (array)$embed;
-				}
-			}
-
-			$htmlAssets = [];
-			if ( isset( $story->htmlAsset ) ) {
-				if ( isset( $story->htmlAsset->id ) ) {
-					$htmlAssets[ $story->htmlAsset->id ] = $story->htmlAsset->value;
-				} else {
-					// sometimes there are multiple objects
-					foreach ( (array)$story->htmlAsset as $hasset ) {
-						if ( isset( $hasset->id ) ) {
-							$htmlAssets[ $hasset->id ] = $hasset->value;
-						}
-					}
-				}
-			}
-
-			$multimedia = [];
-			if ( isset( $story->multimedia ) ) {
-				$multims_array = [];
-				if ( isset( $story->multimedia->id ) ) {
-					$multims_array[] = $story->multimedia;
-				} else {
-					// sometimes there are multiple objects
-					foreach ( (array)$story->multimedia as $multim ) {
-						if ( isset( $multim->id ) ) {
-							$multims_array[] = $multim;
-						}
-					}
-				}
-				foreach( $multims_array as $multim ) {
-					$multimedia[ $multim->id ] = (array)$multim;
-				}
-			}
-
-			foreach ( $layoutarry as $ordernum => $element ) {
-				$reference = $element['reference'];
-				switch ( $element['type'] ) {
-					case 'text':
-						if ( !empty( $paragraphs[ $reference ] ) ) {
-							$body_with_layout .= "<p>" . $paragraphs[ $reference ] . "</p>\n";
-						}
-						break;
-					case 'staticHtml':
-						if ( !empty( $htmlAssets[ $reference ] ) ) {
-							$body_with_layout .= $htmlAssets[ $reference ] . "\n\n";
-							$returnary['has_external'] = TRUE;
-							if ( strpos( $htmlAssets[ $reference ], 'jwplayer.com' ) ) {
-								$returnary['has_video'] = TRUE;
-							}
-						}
-						break;
-					case 'externalAsset':
-						if ( !empty( $externalAssets[ $reference ] ) ) {
-							$figclass = "wp-block-embed";
-							if ( !empty( (string)$externalAssets[ $reference ]['type'] ) && strtolower( (string)$externalAssets[ $reference ]['type'] ) == 'youtube') {
-								$returnary['has_video'] = TRUE;
-								$figclass .= " is-type-video";
-							}
-							$fightml = "<figure class=\"$figclass\"><div class=\"wp-block-embed__wrapper\">";
-							$fightml .=  "\n" . $externalAssets[$reference]['url'] . "\n";
-							$figcaption = '';
-							if ( !empty( (string)$externalAssets[ $reference ]['credit'] ) || !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
-								if ( !empty( trim( (string)$externalAssets[ $reference ]['credit'] ) ) ) {
-									$figcaption .= "<cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
+						case 'staticHtml':
+							if ( !empty( $htmlAssets[ $reference ] ) ) {
+								$body_with_layout .= $htmlAssets[ $reference ] . "\n\n";
+								$returnary['has_external'] = TRUE;
+								if ( strpos( $htmlAssets[ $reference ], 'jwplayer.com' ) ) {
+									$returnary['has_video'] = TRUE;
 								}
-								if ( !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
-									$figcaption .= trim( (string)$externalAssets[ $reference ]['caption'] );
-								}
-								$figcaption = !empty( $figcaption ) ? "<figcaption>$figcaption</figcaption>" : "";
 							}
-							$fightml .= "</div>$figcaption</figure>\n";
-							$body_with_layout .= $fightml;
-						}
-						break;
-					case 'multimedia':
-						if ( !empty( $multimedia[ $reference ] ) ) {
-							// check permissions
-							$perms = $multimedia[ $reference ]['permissions'];
-							if ( $perms->embed->allow != false ) {
-								$fightml = "<figure class=\"wp-block-embed is-type-video\"><div class=\"wp-block-embed__wrapper\">";
-								$returnary['has_video'] = TRUE;
-								$fightml .= "<div style=\"padding-bottom: 56.25%; position:relative; height:0;\"><iframe src=\"https://www.npr.org/embedded-video?storyId=" . (int)$story->id . "&mediaId=$reference&jwMediaType=music\" frameborder=\"0\" scrolling=\"no\" style=\"position:absolute; top:0; left:0; width:100%; height:100%;\" marginwidth=\"0\" marginheight=\"0\"></iframe></div>";
+							break;
+						case 'externalAsset':
+							if ( !empty( $externalAssets[ $reference ] ) ) {
+								$figclass = "wp-block-embed";
+								if ( !empty( (string)$externalAssets[ $reference ]['type'] ) && strtolower( (string)$externalAssets[ $reference ]['type'] ) == 'youtube') {
+									$returnary['has_video'] = TRUE;
+									$figclass .= " is-type-video";
+								}
+								$fightml = "<figure class=\"$figclass\"><div class=\"wp-block-embed__wrapper\">";
+								$fightml .=  "\n" . $externalAssets[$reference]['url'] . "\n";
 								$figcaption = '';
-								if ( !empty( (string)$multimedia[ $reference ]['credit'] ) || !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
-									if (!empty( trim( (string)$multimedia[ $reference ]['credit'] ) ) ) {
-										$figcaption .= "<cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
+								if ( !empty( (string)$externalAssets[ $reference ]['credit'] ) || !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
+									if ( !empty( trim( (string)$externalAssets[ $reference ]['credit'] ) ) ) {
+										$figcaption .= "<cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
 									}
-									if ( !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
-										$figcaption .= trim( (string)$multimedia[ $reference ]['caption'] );
+									if ( !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
+										$figcaption .= trim( (string)$externalAssets[ $reference ]['caption'] );
 									}
-									$figcaption = ( !empty( $figcaption ) ? "<figcaption>$figcaption</figcaption>" : "" );
+									$figcaption = !empty( $figcaption ) ? "<figcaption>$figcaption</figcaption>" : "";
 								}
 								$fightml .= "</div>$figcaption</figure>\n";
 								$body_with_layout .= $fightml;
 							}
-						}
-						break;
-					default:
-						// handles both 'list' and 'image' since it will reset the type and then assign the reference
-						if ( $element['type'] == 'list' ) {
-							foreach ( $storyimages as $image ) {
-								if ( $image['type'] != 'primary' ) {
-									continue;
-								}
-								$reference = $image['id'];
-								$element['type'] = 'image';
-								break;
-							}
-						}
-						if ( $element['type'] != 'image' ) {
 							break;
-						}
-						if ( !empty( $storyimages[ $reference ] ) ) {
-							$figclass = "wp-block-image size-large";
-							$thisimg = $storyimages[ $reference ];
-							$fightml = ( !empty( (string)$thisimg['image_url'] ) ? '<img src="' . (string)$thisimg['image_url'] . '"' : '' );
-							if ( !empty( $thisimg['is_portrait'] ) ) {
-								$figclass .= ' alignright';
-								$fightml .= " width=200";
-							}
-							$thiscaption = ( !empty( trim( (string)$thisimg['caption'] ) ) ? trim( (string)$thisimg['caption'] ) : '' );
-							$fightml .= ( !empty( $fightml ) && !empty( $thiscaption ) ? ' alt="' . strip_tags( $thiscaption ) . '"' : '' );
-							$fightml .= ( !empty( $fightml ) ? '>' : '' );
-							$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? $thiscaption  : '' );
-							$cites = '';
-							foreach ( [ 'producer', 'provider', 'copyright' ] as $item ) {
-								$thisitem = trim( (string)$thisimg[ $item ] );
-								if ( !empty( $thisitem ) ) {
-									$cites .= ( !empty( $cites ) ? ' | ' . $thisitem : $thisitem );
+						case 'multimedia':
+							if ( !empty( $multimedia[ $reference ] ) ) {
+								// check permissions
+								$perms = $multimedia[ $reference ]['permissions'];
+								if ( $perms->embed->allow != false ) {
+									$fightml = "<figure class=\"wp-block-embed is-type-video\"><div class=\"wp-block-embed__wrapper\">";
+									$returnary['has_video'] = TRUE;
+									$fightml .= "<div style=\"padding-bottom: 56.25%; position:relative; height:0;\"><iframe src=\"https://www.npr.org/embedded-video?storyId=" . (int)$story->id . "&mediaId=$reference&jwMediaType=music\" frameborder=\"0\" scrolling=\"no\" style=\"position:absolute; top:0; left:0; width:100%; height:100%;\" marginwidth=\"0\" marginheight=\"0\"></iframe></div>";
+									$figcaption = '';
+									if ( !empty( (string)$multimedia[ $reference ]['credit'] ) || !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
+										if (!empty( trim( (string)$multimedia[ $reference ]['credit'] ) ) ) {
+											$figcaption .= "<cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
+										}
+										if ( !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
+											$figcaption .= trim( (string)$multimedia[ $reference ]['caption'] );
+										}
+										$figcaption = ( !empty( $figcaption ) ? "<figcaption>$figcaption</figcaption>" : "" );
+									}
+									$fightml .= "</div>$figcaption</figure>\n";
+									$body_with_layout .= $fightml;
 								}
 							}
-							$cites = ( !empty( $cites ) ? "<cite>$cites</cite>" : '' );
-							$thiscaption .= $cites;
-							$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? "<figcaption>$thiscaption</figcaption>"  : '' );
-							$fightml .= ( !empty( $fightml ) && !empty( $figcaption ) ? $figcaption : '' );
-							$body_with_layout .= ( !empty( $fightml ) ? "<figure class=\"$figclass\">$fightml</figure>\n\n" : '' );
-							// make sure it doesn't get reused;
-							unset( $storyimages[ $reference ] );
-						}
-						break;
+							break;
+						case 'list':
+							if ( !empty( $collection[ $reference ] ) ) :
+								$thiscol = $collection[ $reference ];
+								$fightml = '';
+								if ( strtolower( $thiscol['displayType'] ) == "slideshow" ) :
+									$slides = [
+										'title' => ( !empty( $thiscol['title']->value ) ? $thiscol['title']->value : '' ),
+										'intro' => ( !empty( $thiscol['introText']->value ) ? $thiscol['introText']->value : '' ),
+										'members' => []
+									];
+									foreach ( $thiscol['member'] as $cmem ) :
+										if ( !empty( $members[ $cmem->refId ] ) ) :
+											$thismem = $members[ $cmem->refId ];
+											if ( !empty( $thismem['image'] ) ) :
+												$thisimg = $storyimages[ $thismem['image']->refId ];
+												$image_url = $thisimg['image_url'];
+												$credits = [];
+												$full_credits = '';
+												if ( !empty( $thisimg['producer']->value ) ) :
+													$credits[] = $thisimg['producer']->value;
+												endif;
+												if ( !empty( $thisimg['provider']->value ) ) :
+													$credits[] = $thisimg['provider']->value;
+												endif;
+												if ( !empty( $thisimg['copyright']->value ) ) :
+													$credits[] = $thisimg['copyright']->value;
+												endif;
+												if ( !empty( $credits ) ) :
+													$full_credits = ' (' . implode( ' | ', $credits ) . ')';
+												endif;
+												$link_text = $thisimg['title']->value . $full_credits;
+												foreach ( $thisimg['crop'] as $crop ) :
+													if ( $crop->type == $thismem['image']->crop ) :
+														$image_url = $crop->src;
+													endif;
+												endforeach;
+												$slides['members'][] = [
+													'src' => $image_url,
+													'text' => $link_text
+												];
+											endif;
+										endif;
+									endforeach;
+									$fightml = "<!-- || SLIDESHOW || " . json_encode( $slides ) . " || -->";
+								elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) :
+									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><ul>';
+									foreach ( $thiscol['member'] as $cmem ) :
+										$fightml .= '<li><a href="' . $cmem['url'] . '" target="_blank">"' . $cmem['title']->value . '"</a>"' . $cmem['introText']->value . '"</li>';
+									endforeach;
+									$fightml .= '</ul></div></figure>';
+								endif;
+								$body_with_layout .= $fightml;
+							endif;
+							break;
+						default:
+							if ( !empty( $storyimages[ $reference ] ) ) {
+								$figclass = "wp-block-image size-large";
+								$thisimg = $storyimages[ $reference ];
+								$fightml = ( !empty( (string)$thisimg['image_url'] ) ? '<img src="' . (string)$thisimg['image_url'] . '"' : '' );
+								if ( !empty( $thisimg['is_portrait'] ) ) {
+									$figclass .= ' alignright';
+									$fightml .= " width=200";
+								}
+								$thiscaption = ( !empty( trim( (string)$thisimg['caption'] ) ) ? trim( (string)$thisimg['caption'] ) : '' );
+								$fightml .= ( !empty( $fightml ) && !empty( $thiscaption ) ? ' alt="' . strip_tags( $thiscaption ) . '"' : '' );
+								$fightml .= ( !empty( $fightml ) ? '>' : '' );
+								$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? $thiscaption  : '' );
+								$cites = '';
+								foreach ( [ 'producer', 'provider', 'copyright' ] as $item ) {
+									$thisitem = trim( (string)$thisimg[ $item ] );
+									if ( !empty( $thisitem ) ) {
+										$cites .= ( !empty( $cites ) ? ' | ' . $thisitem : $thisitem );
+									}
+								}
+								$cites = ( !empty( $cites ) ? "<cite>$cites</cite>" : '' );
+								$thiscaption .= $cites;
+								$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? "<figcaption>$thiscaption</figcaption>"  : '' );
+								$fightml .= ( !empty( $fightml ) && !empty( $figcaption ) ? $figcaption : '' );
+								$body_with_layout .= ( !empty( $fightml ) ? "<figure class=\"$figclass\">$fightml</figure>\n\n" : '' );
+								// make sure it doesn't get reused;
+								unset( $storyimages[ $reference ] );
+							}
+							break;
+					}
+				}
+			} else {
+				foreach ( $story->textWithHtml->paragraphs as $paragraph ) {
+					$body_with_layout .= $this->add_paragraph_tag( (string)$paragraph->value ) . "\n";
 				}
 			}
+		} else {
+			foreach ( $story->textWithHtml->paragraphs as $paragraph ) {
+				$body_with_layout .= $this->add_paragraph_tag( (string)$paragraph->value ) . "\n";
+			}
 		}
+		if ( isset( $story->correction ) ) :
+			$body_with_layout .= '<blockquote><h3>' . $story->correction->correctionTitle->value . ': <em>' . $story->correction->correctionDate->value . '</em></h3>' . $story->correction->correctionText->value .
+			'</blockquote>';
+		endif;
 		$returnary['body'] = $body_with_layout;
 		return $returnary;
 	}
