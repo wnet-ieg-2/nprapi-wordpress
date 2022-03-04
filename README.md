@@ -2,12 +2,12 @@
 
 A collection of tools for publishing from and to NPR's Story API. [Find this plugin on the Wordpress.org Plugin Repository](https://wordpress.org/plugins/npr-story-api/).
 
-Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver 
-Requires at least: 3.8.14  
-Tested up to: 5.8.3  
-Stable tag: 1.9  
-License: GPLv2  
-License URI: https://www.gnu.org/licenses/gpl-2.0.html  
+Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver
+Requires at least: 3.8.14
+Tested up to: 5.9.1
+Stable tag: 1.9
+License: GPLv2
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 ## Description
 
@@ -15,7 +15,7 @@ The NPR Story API Plugin provides push and pull functionality with the NPR Story
 
 NPR's API is a content API, which essentially provides a structured way for other computer applications to get NPR stories in a predictable, flexible and powerful way. The content that is available includes audio from most NPR programs dating back to 1995 as well as text, images and other web-only content from NPR and NPR member stations. This archive consists of over 250,000 stories that are grouped into more than 5,000 different aggregations.
 
-Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew). 
+Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew).
 
 The WordPress plugin was originally developed as an Open Source plugin by NPR Digital Services and is now supported by developers with NPR member stations working within the Open Public Media group. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please visit our [GitHub repository](https://github.com/OpenPublicMedia/nprapi-wordpress) and post an issue or contribute a pull request.
 
@@ -72,7 +72,7 @@ NPR Stories having got gotten
 
 ### V1.9
 
-* Document transition from NPR DS ownership to NPR Member Station developers [PR #9](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/9) 
+* Document transition from NPR DS ownership to NPR Member Station developers [PR #9](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/9)
 * Set a default category for each query when using the 'post' type [PR #7](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/7)
 * Generate WP posts with rich layout including multimedia etc [PR #4](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/4)
 * Change the image_guid variable name to match content [issue](https://github.com/OpenPublicMedia/nprapi-wordpress/commit/1dec12ff5774bb6ec3017799980dddb7b8ff556e )
@@ -156,7 +156,7 @@ NPR Stories having got gotten
 ### V1.4
 
 * Filters for Shortcodes - We've now implemented a hook to a filter that will be used to alter any short codes that a plugin may own in a post before pushing that post to the NPR Story API. The filter (`npr_ds_shortcode_filter`) will fire before we remove shortcodes when we're pushing the post. Any plugin that has shortcodes should alter those shortcodes via this filter to something that's more HTML-friendly, so that other clients can access that information. As an example of what needs to be done in a plugin to take advantage of this new filter please see the branch for the following plugin: <https://github.com/argoproject/navis-documentcloud/tree/kmoylan-filter> What we've done here is write a function `my_documentCloud_filter` that is linked to the filter `npr_ds_shortcode_filter` (all near the bottom of the PHP file).  This function will turn any shortcode created by this plugin into an HTML `<a>` tag to link to what was an embedded document. As with any other filter in WordPress, nothing will happen if you do not have any plugins installed that have implemented the filter. It will be up to any other plugin's maintainer to implement the filter correctly if they wish to take advantage of this functionality.
-* Bulk Push - From the post list page for you NPR Push post type you can now select multiple posts and using the bulk operation dropdown on that page, push the selected posts to the NPR Story API. This should helpful for posts that have been living on a site before the NPR Story API plugin was installed. Note that this will only push a maximum 20 posts at one time.   
+* Bulk Push - From the post list page for you NPR Push post type you can now select multiple posts and using the bulk operation dropdown on that page, push the selected posts to the NPR Story API. This should helpful for posts that have been living on a site before the NPR Story API plugin was installed. Note that this will only push a maximum 20 posts at one time.
 * Publish or Draft for Get Multi -  It's now possible for an admin to select Draft or Publish for the posts that come from a query on the get multi page. This way, the return from each query can be reviewed before it's published to a site.
 * Run Get Multi on Demand -  An admin can now select a checkbox if they would like the get multi queries to run when the page is saved. This will allow admins to immediately check queries instead of having to wait for the cron to run.
 

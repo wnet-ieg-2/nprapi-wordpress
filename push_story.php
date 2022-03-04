@@ -162,14 +162,14 @@ function nprstory_push_meta_keys( $post_type = 'post' ) {
 		ON $wpdb->posts.ID = $wpdb->postmeta.post_id
 		WHERE $wpdb->posts.post_type = '%s'
 		AND $wpdb->postmeta.meta_key != ''
-		AND $wpdb->postmeta.meta_key NOT RegExp '(^[_0-9]wp_.+$)'
+		AND $wpdb->postmeta.meta_key NOT LIKE '_oembed_%'
 		AND $wpdb->postmeta.meta_key NOT RegExp '(^[0-9]+$)'
 	";
 	//AND $wpdb->postmeta.meta_key NOT RegExp '(^[_0-9].+$)'
 	$keys = $wpdb->get_col( $wpdb->prepare( $query, $post_type ) );
 	if ( $keys ) natcasesort( $keys );
 
-	//set_transient('ds_npr_' .  $post_type .'_meta_keys', $keys, 60*60*24); # 1 Day Expiration
+	set_transient( 'ds_npr_' . $post_type . '_meta_keys', $keys, 60*60*24 ); # 1 Day Expiration
 	return $keys;
 }
 
@@ -180,7 +180,7 @@ function nprstory_push_meta_keys( $post_type = 'post' ) {
  * @param  $post_type default is 'post'
  */
 function nprstory_get_post_meta_keys( $post_type = 'post' ) {
-	//$cache = get_transient('ds_npr_' .  $post_type .'_meta_keys');
+	$cache = get_transient( 'ds_npr_' .  $post_type . '_meta_keys');
 	if ( !empty( $cache ) ) {
 		$meta_keys = $cache;
 	} else {
@@ -287,7 +287,7 @@ function nprstory_validation_callback_debug( $value ) {
 function nprstory_push_settings_init() {
 	add_settings_section( 'ds_npr_push_settings', 'NPR API PUSH settings', 'nprstory_api_push_settings_callback', 'ds_npr_api_push_mapping' );
 
-	add_settings_field( 'dp_npr_push_use_custom_map', 'Use Custom Settings', 'nprstory_api_use_custom_mapping_callback', 'ds_npr_api_push_mapping', 'ds_npr_push_settings' );
+	add_settings_field( 'ds_npr_push_use_custom_map', 'Use Custom Settings', 'nprstory_api_use_custom_mapping_callback', 'ds_npr_api_push_mapping', 'ds_npr_push_settings' );
 	register_setting( 'ds_npr_api_push_mapping', 'dp_npr_push_use_custom_map', 'nprstory_validation_callback_checkbox' );
 
 	add_settings_field( 'ds_npr_api_mapping_title', 'Story Title', 'nprstory_api_mapping_title_callback', 'ds_npr_api_push_mapping', 'ds_npr_push_settings' );
@@ -334,7 +334,7 @@ function nprstory_api_use_custom_mapping_callback() {
 	}
 	$check_box_string .= " />";
 	$check_box_string .= wp_nonce_field( 'nprstory_nonce_dp_npr_push_use_custom_map', 'nprstory_nonce_dp_npr_push_use_custom_map_name', true, false );
-	echo $check_box_string;
+	echo nprstory_esc_html( $check_box_string );
 }
 
 /**
@@ -392,14 +392,14 @@ function nprstory_api_mapping_distribute_media_polarity_callback() {
 	echo '<div>Do Distribute or Do Not Distribute? <select id="ds_npr_api_mapping_distribute_media_polarity" name="ds_npr_api_mapping_distribute_media_polarity">';
 
 	$selected = get_option( 'ds_npr_api_mapping_distribute_media_polarity' );
-	$keys = [ 1 => "DO Distribute", 0 => "DO NOT Dsitribute" ];
+	$keys = [ 1 => "DO Distribute", 0 => "DO NOT Distribute" ];
 	foreach ( $keys as $i => $key ) {
 		$option_string = "\n<option  ";
 		if ( $i == $selected ) {
 			$option_string .= " selected ";
 		}
 		$option_string .=   "value='" . $i . "'>" . esc_html( $key ) . " </option>";
-		echo $option_string;
+		echo nprstory_esc_html( $option_string );
 	}
 	echo "</select> </div><p><hr></p>";
 	wp_nonce_field( 'nprstory_nonce_ds_npr_api_mapping_distribute_media_polarity', 'nprstory_nonce_ds_npr_api_mapping_distribute_media_polarity_name', true, true );
@@ -415,7 +415,7 @@ function nprstory_show_keys_select( $field_name, $keys ) {
 
 	$selected = get_option( $field_name );
 
-	echo "<div><select id=" . $field_name . " name=" . $field_name . ">";
+	echo nprstory_esc_html( "<div><select id=" . $field_name . " name=" . $field_name . ">" );
 
 	echo '<option value="#NONE#"> &mdash; default &mdash; </option>';
 	foreach ( $keys as $key ) {
@@ -424,7 +424,7 @@ function nprstory_show_keys_select( $field_name, $keys ) {
 			$option_string .= " selected ";
 		}
 		$option_string .=   "value='" . esc_attr( $key ) . "'>" . esc_html( $key ) . " </option>";
-		echo $option_string;
+		echo nprstory_esc_html( $option_string );
 	}
 	echo "</select> </div>";
 	wp_nonce_field( 'nprstory_nonce_' . $field_name, 'nprstory_nonce_' . $field_name . '_name', true, true );

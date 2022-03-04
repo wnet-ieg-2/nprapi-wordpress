@@ -159,7 +159,7 @@ function nprstory_api_get_multi_settings_callback() {
 }
 
 function nprstory_query_run_multi_callback() {
-	$run_multi = get_option('dp_npr_query_run_multi');
+	$run_multi = get_option( 'dp_npr_query_run_multi' );
 	$check_box_string = "<input id='dp_npr_query_run_multi' name='dp_npr_query_run_multi' type='checkbox' value='true' ";
 
 	if ( $run_multi ) {
@@ -167,7 +167,7 @@ function nprstory_query_run_multi_callback() {
 	}
 	$check_box_string .= "/>";
 
-	echo $check_box_string;
+	echo html_entity_decode( esc_html($check_box_string ), ENT_QUOTES );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_run_multi', 'nprstory_nonce_ds_npr_query_run_multi_name', true, true );
 }
 
@@ -180,20 +180,20 @@ function nprstory_query_use_layout_callback() {
 	}
 	$check_box_string .= "/>";
 
-	echo $check_box_string . "<p>If 'layout' is available in the NPR Story API output for your key, checking this box will import posts with more complex HTML to render any images, YouTube videos, Tweets, iframes, or JavaScript-based widgets within the post in the order they appeared on the NPR website. Only the 'primary' image for the story will be sideloaded into the Media Library, all other images will be linked from NPR.</p><p>If 'layout' is not available in your API results and you want to use this feature, open a ticket with NPR requesting 'layout permissions' for your Story API Key, and include the key in the ticket request.</p><p><em><strong>CAUTION:</strong> Checking this box will disables the normal 'wp_kses' filtering for imported posts that prevents any JavaScript from being included in the post.  We assume that NPR Story API posts will not have malicious scripts.</em></p>";
+	echo nprstory_esc_html( $check_box_string . "<p>If 'layout' is available in the NPR Story API output for your key, checking this box will import posts with more complex HTML to render any images, YouTube videos, Tweets, iframes, or JavaScript-based widgets within the post in the order they appeared on the NPR website. Only the 'primary' image for the story will be sideloaded into the Media Library, all other images will be linked from NPR.</p><p>If 'layout' is not available in your API results and you want to use this feature, open a ticket with NPR requesting 'layout permissions' for your Story API Key, and include the key in the ticket request.</p><p><em><strong>CAUTION:</strong> Checking this box will disables the normal 'wp_kses' filtering for imported posts that prevents any JavaScript from being included in the post.  We assume that NPR Story API posts will not have malicious scripts.</em></p>" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_use_layout', 'nprstory_nonce_ds_npr_query_use_layout_name', true, true );
 }
 
 function nprstory_query_multi_cron_interval_callback() {
 	$option = get_option( 'dp_npr_query_multi_cron_interval' );
-	echo "<input type='number' value='$option' name='dp_npr_query_multi_cron_interval' id='dp_npr_query_multi_cron_interval' /> <p> How often, in minutes, should the Get Multi function run?  (default = 60)";
+	echo nprstory_esc_html( "<input type='number' value='$option' name='dp_npr_query_multi_cron_interval' id='dp_npr_query_multi_cron_interval' /> <p> How often, in minutes, should the Get Multi function run?  (default = 60)" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_multi_cron_interval', 'nprstory_nonce_ds_npr_query_multi_cron_interval_name', true, true );
 }
 
 function nprstory_api_query_publish_callback( $i ) {
 	$selected = get_option( 'ds_npr_query_publish_' . $i );
 
-	echo "<div>Publish or Draft the returns from Query " . $i . "? <select id=" . 'ds_npr_query_publish_' . $i . " name=" . 'ds_npr_query_publish_' . $i . ">";
+	echo nprstory_esc_html( "<div>Publish or Draft the returns from Query " . $i . "? <select id=" . 'ds_npr_query_publish_' . $i . " name=" . 'ds_npr_query_publish_' . $i . ">" );
 
 	// echo '<option value=""> &mdash; Select &mdash; </option>';
 	$keys = [ "Publish", "Draft" ];
@@ -203,7 +203,7 @@ function nprstory_api_query_publish_callback( $i ) {
 			$option_string .= " selected ";
 		}
 		$option_string .=   "value='" . esc_attr( $key ) . "'>" . esc_html( $key ) . " </option>";
-		echo $option_string;
+		echo nprstory_esc_html( $option_string );
 	}
 	$option_string .= wp_nonce_field( 'nprstory_nonce_ds_npr_query_publish_' . $i, 'nprstory_nonce_ds_npr_query_publish_' . $i . '_name', true, false );
 	echo "</select> </div>";
@@ -225,13 +225,13 @@ function nprstory_api_select_category_callback( $i ) {
 	];
 	$select = wp_dropdown_categories( $args );
 
-	echo $select;
+	echo nprstory_esc_html( $select );
 }
 
 function nprstory_api_query_callback( $i ) {
 	$option = get_option( 'ds_npr_query_' . $i );
 	$name = 'ds_npr_query_' . $i;
-	echo "<input type='text' value='$option' name='$name' style='width: 300px;' />";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' />" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_' . $i, 'nprstory_nonce_ds_npr_query_' . $i . '_name', true, true );
 
 }
@@ -239,38 +239,38 @@ function ds_npr_api_query_tags_callback( $i ) {
 	$name = 'ds_npr_query_tags_' . $i;
 	$option = get_option( $name );
 
-	echo "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p> Add tag(s) to each story pulled from NPR (comma separated).</p>";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p> Add tag(s) to each story pulled from NPR (comma separated).</p>" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_tags_' . $i, 'nprstory_nonce_ds_npr_tags_' . $i . '_name', true, true );
 	echo "<p><hr></p>";
 }
 
 function nprstory_api_num_multi_callback() {
 	$option = get_option('ds_npr_num');
-	echo "<input type='number' value='$option' name='ds_npr_num' /> <p> Increase the number of queries by changing the number in the field above.";
+	echo nprstory_esc_html( "<input type='number' value='$option' name='ds_npr_num' /> <p> Increase the number of queries by changing the number in the field above." );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_num', 'nprstory_nonce_ds_npr_num_name', true, true );
 }
 
 function nprstory_api_key_callback() {
 	$option = get_option( 'ds_npr_api_key' );
-	echo "<input type='text' value='$option' name='ds_npr_api_key' style='width: 300px;' />";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='ds_npr_api_key' style='width: 300px;' />" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_api_key', 'nprstory_nonce_ds_npr_api_key_name', true, true );
 }
 
 function nprstory_api_pull_url_callback() {
 	$option = get_option( 'ds_npr_api_pull_url' );
-	echo "<input type='text' value='$option' name='ds_npr_api_pull_url' style='width: 300px;' />";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='ds_npr_api_pull_url' style='width: 300px;' />" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_api_pull_url', 'nprstory_nonce_ds_npr_api_pull_url_name', true, true );
 }
 
 function nprstory_api_push_url_callback() {
 	$option = get_option( 'ds_npr_api_push_url' );
-	echo "<input type='text' value='$option' name='ds_npr_api_push_url' style='width: 300px;' />";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='ds_npr_api_push_url' style='width: 300px;' />" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_api_push_url', 'nprstory_nonce_ds_npr_api_push_url_name', true, true );
 }
 
 function nprstory_api_org_id_callback() {
 	$option = get_option( 'ds_npr_api_org_id' );
-	echo "<input type='text' value='$option' name='ds_npr_api_org_id' style='width: 300px;' />";
+	echo nprstory_esc_html( "<input type='text' value='$option' name='ds_npr_api_org_id' style='width: 300px;' />" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_api_org_id', 'nprstory_nonce_ds_npr_api_org_id_name', true, true );
 }
 
@@ -282,7 +282,7 @@ function nprstory_pull_post_type_callback() {
 function nprstory_push_post_type_callback() {
 	$post_types = get_post_types();
 	nprstory_show_post_types_select( 'ds_npr_push_post_type', $post_types );
-	echo ('<div> If you change the Push Post Type setting remember to update the mappings for API Fields at <a href="' . admin_url( 'options-general.php?page=ds_npr_api_push_mapping' ) . '">NPR API Field Mapping</a> page.</div>');
+	echo nprstory_esc_html( '<div> If you change the Push Post Type setting remember to update the mappings for API Fields at <a href="' . admin_url( 'options-general.php?page=ds_npr_api_push_mapping' ) . '">NPR API Field Mapping</a> page.</div>' );
 }
 
 function nprstory_push_story_permissions_callback() {
@@ -304,7 +304,7 @@ function nprstory_push_story_permissions_callback() {
 function nprstory_show_post_types_select( $field_name, $keys ) {
 	$selected = get_option( $field_name );
 
-	echo "<div><select id=" . $field_name . " name=" . $field_name . ">";
+	echo nprstory_esc_html( "<div><select id=" . $field_name . " name=" . $field_name . ">" );
 
 	echo '<option value=""> &mdash; Select &mdash; </option>';
 	foreach ( $keys as $key ) {
@@ -313,7 +313,7 @@ function nprstory_show_post_types_select( $field_name, $keys ) {
 			$option_string .= " selected ";
 		}
 		$option_string .=   "value='" . esc_attr( $key ) . "'>" . esc_html( $key ) . " </option>";
-		echo $option_string;
+		echo nprstory_esc_html( $option_string );
 	}
 	echo "</select> </div>";
 	wp_nonce_field( 'nprstory_nonce_' . $field_name, 'nprstory_nonce_' . $field_name . '_name', true, true );
@@ -326,7 +326,7 @@ function nprstory_show_post_types_select( $field_name, $keys ) {
  */
 function nprstory_show_perms_select( $field_name, $keys ) {
 	$selected = get_option( $field_name );
-	echo "<div><select id=" . $field_name . " name=" . $field_name . ">";
+	echo nprstory_esc_html( "<div><select id=" . $field_name . " name=" . $field_name . ">" );
 
 	echo '<option value=""> &mdash; Select &mdash; </option>';
 	foreach ( $keys as $id => $key ) {
@@ -335,7 +335,7 @@ function nprstory_show_perms_select( $field_name, $keys ) {
 			$option_string .= " selected ";
 		}
 		$option_string .=   "value='" . esc_attr( $id ) . "'>" . esc_html( $key['name'] ) . " </option>";
-		echo $option_string;
+		echo nprstory_esc_html( $option_string );
 	}
 	echo "</select> </div>";
 	wp_nonce_field( 'nprstory_nonce_' . $field_name, 'nprstory_nonce_' . $field_name . '_name', true, true );

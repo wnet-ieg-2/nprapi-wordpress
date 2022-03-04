@@ -666,13 +666,14 @@ class NPRAPIWordpress extends NPRAPI {
 
 		// wp doesn't let me do a wp_remote_post with method=DELETE so we have to make our own curl request.  fun
 		// a lot of this code came from WP's class-http object
-		// $result = wp_remote_post( $url, array( 'method' => 'DELETE' ) );
-		$handle = curl_init();
-		curl_setopt( $handle, CURLOPT_CUSTOMREQUEST, 'DELETE' );
-		curl_setopt( $handle, CURLOPT_URL, $url );
-		curl_setopt( $handle, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_exec( $handle );
-		curl_close( $handle );
+		$result = wp_remote_request( $url, [ 'method' => 'DELETE' ] );
+		$body = wp_remote_retrieve_body( $result );
+		// $handle = curl_init();
+		// curl_setopt( $handle, CURLOPT_CUSTOMREQUEST, 'DELETE' );
+		// curl_setopt( $handle, CURLOPT_URL, $url );
+		// curl_setopt( $handle, CURLOPT_RETURNTRANSFER, TRUE );
+		// curl_exec( $handle );
+		// curl_close( $handle );
 	}
 
 	/**
@@ -749,7 +750,11 @@ class NPRAPIWordpress extends NPRAPI {
 	function add_paragraph_tag( $p ) {
 		$output = '';
 		if ( preg_match( '/^<[a-zA-Z0-9 \="\-_\']+>.+<[a-zA-Z0-9\/]+>$/', $p ) ) {
-			$output = $p;
+			if ( preg_match( '/<(a href|em|strong)/', $p ) ) :
+				$output = '<p>' . $p . '</p>';
+			else :
+				$output = $p;
+			endif;
 		} else {
 			$output = '<p>' . $p . '</p>';
 		}
@@ -1097,7 +1102,7 @@ class NPRAPIWordpress extends NPRAPI {
 			$body_with_layout .= '<blockquote><h3>' . $story->correction->correctionTitle->value . ': <em>' . $story->correction->correctionDate->value . '</em></h3>' . $story->correction->correctionText->value .
 			'</blockquote>';
 		endif;
-		$returnary['body'] = $body_with_layout;
+		$returnary['body'] = nprstory_esc_html( $body_with_layout );
 		return $returnary;
 	}
 }
