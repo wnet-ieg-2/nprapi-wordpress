@@ -1046,7 +1046,7 @@ class NPRAPIWordpress extends NPRAPI {
 											endif;
 										endif;
 									endforeach;
-									$fightml = "<!-- || SLIDESHOW || " . json_encode( $slides ) . " || -->";
+									$fightml = "[npr_gallery]" . json_encode( $slides ) . "[/npr_gallery]";
 								elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) :
 									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><ul>';
 									foreach ( $thiscol['member'] as $cmem ) :

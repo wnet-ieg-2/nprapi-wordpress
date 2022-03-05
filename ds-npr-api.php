@@ -68,6 +68,12 @@ register_activation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_acti
 add_action( 'npr_ds_hourly_cron', [ 'DS_NPR_API', 'nprstory_cron_pull' ] );
 register_deactivation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_deactivation' );
 
+// function nprstory_scripts() {
+// 	wp_register_script( 'npr-splide-js', NPRSTORY_PLUGIN_DIR . 'assets/splide/js/splide.min.js', [], '3.6.12', true );
+// 	wp_register_script( 'npr-splide-js-settings', NPRSTORY_PLUGIN_DIR . 'assets/splide/js/splide-settings.js', [], '3.6.12', true );
+// 	wp_register_style( 'npr-splide-css', NPRSTORY_PLUGIN_DIR . 'assets/splide/css/splide.min.css', [], '3.6.12', true );
+// }
+// add_action( 'wp_enqueue_scripts', 'nprstory_scripts' );
 
 function nprstory_activation() {
 	global $wpdb;
@@ -212,3 +218,33 @@ function nprstory_error_log( $thing ) {
 function nprstory_esc_html( $string ) {
 	return html_entity_decode( esc_html( $string ), ENT_QUOTES );
 }
+
+function nprstory_gallery_shortcode( $atts, $content, $tag ) {
+	$output = '';
+	if ( empty( $content ) ) :
+		return $output;
+	endif;
+	$json = json_decode( $content, true );
+	$caption = '';
+	$output = '<figure class="wp-block-image">';
+	if ( !empty( $json['title'] ) ) :
+		$caption .= '<h3>' . $json['title'] . '</h3>';
+	endif;
+	if ( !empty( $json['intro'] ) ) :
+		$caption .= '<p>' . $json['intro'] . '</p>';
+	endif;
+	$output .= '<div class="splide"><div class="splide__track"><ul class="splide__list">';
+	foreach( $json['members'] as $member ) :
+		$output .= '<li class="splide__slide"><img src="' . esc_url( $member['src'] ) . '" alt="' . esc_attr( $member['text'] ) . '"><div>' . nprstory_esc_html( $member['text'] ) . '</div></li>';
+	endforeach;
+	$output .= '</div></div></ul>';
+	if ( !empty( $caption ) ) :
+		$output .= '<figcaption>' . $caption . '</figcaption>';
+	endif;
+	$output .= '</figure>';
+	wp_enqueue_script( 'npr-splide-js', NPRSTORY_PLUGIN_URL . 'assets/js/splide.min.js', [], '3.6.12', true );
+	wp_enqueue_script( 'npr-splide-js-settings', NPRSTORY_PLUGIN_URL . 'assets/js/splide-settings.js', [], '3.6.12', true );
+	wp_enqueue_style( 'npr-splide-css', NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css', [], '3.6.12' );
+	return nprstory_esc_html( $output );
+}
+add_shortcode( 'npr_gallery', 'nprstory_gallery_shortcode' );
