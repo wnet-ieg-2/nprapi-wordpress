@@ -68,13 +68,6 @@ register_activation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_acti
 add_action( 'npr_ds_hourly_cron', [ 'DS_NPR_API', 'nprstory_cron_pull' ] );
 register_deactivation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_deactivation' );
 
-// function nprstory_scripts() {
-// 	wp_register_script( 'npr-splide-js', NPRSTORY_PLUGIN_DIR . 'assets/splide/js/splide.min.js', [], '3.6.12', true );
-// 	wp_register_script( 'npr-splide-js-settings', NPRSTORY_PLUGIN_DIR . 'assets/splide/js/splide-settings.js', [], '3.6.12', true );
-// 	wp_register_style( 'npr-splide-css', NPRSTORY_PLUGIN_DIR . 'assets/splide/css/splide.min.css', [], '3.6.12', true );
-// }
-// add_action( 'wp_enqueue_scripts', 'nprstory_scripts' );
-
 function nprstory_activation() {
 	global $wpdb;
 	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
