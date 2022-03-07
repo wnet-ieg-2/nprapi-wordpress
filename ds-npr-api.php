@@ -228,7 +228,7 @@ function nprstory_gallery_shortcode( $atts, $content, $tag ) {
 	endif;
 	$output .= '<div class="splide"><div class="splide__track"><ul class="splide__list">';
 	foreach( $json['members'] as $member ) :
-		$output .= '<li class="splide__slide"><img src="' . esc_url( $member['src'] ) . '" alt="' . esc_attr( $member['text'] ) . '"><div>' . nprstory_esc_html( $member['text'] ) . '</div></li>';
+		$output .= '<li class="splide__slide"><img data-splide-lazy="' . esc_url( $member['src'] ) . '" alt="' . esc_attr( $member['text'] ) . '"><div>' . nprstory_esc_html( $member['text'] ) . '</div></li>';
 	endforeach;
 	$output .= '</div></div></ul>';
 	if ( !empty( $caption ) ) :
