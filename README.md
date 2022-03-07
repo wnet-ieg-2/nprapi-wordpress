@@ -2,12 +2,12 @@
 
 A collection of tools for publishing from and to NPR's Story API. [Find this plugin on the Wordpress.org Plugin Repository](https://wordpress.org/plugins/npr-story-api/).
 
-Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver
-Requires at least: 3.8.14
-Tested up to: 5.9.1
-Stable tag: 1.9
-License: GPLv2
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+- Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver
+- Requires at least: 3.8.14
+- Tested up to: 5.9.1
+- Stable tag: 1.9
+- License: GPLv2
+- License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 ## Description
 
