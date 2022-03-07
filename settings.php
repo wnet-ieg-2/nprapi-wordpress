@@ -167,7 +167,7 @@ function nprstory_query_run_multi_callback() {
 	}
 	$check_box_string .= "/>";
 
-	echo html_entity_decode( esc_html($check_box_string ), ENT_QUOTES );
+	echo nprstory_esc_html( $check_box_string );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_run_multi', 'nprstory_nonce_ds_npr_query_run_multi_name', true, true );
 }
 

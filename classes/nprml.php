@@ -405,15 +405,15 @@ function nprstory_post_to_nprml_story( $post ) {
 
 				$audio_meta = wp_get_attachment_metadata( $attach_id );
 				$duration = 0;
-				if ( !empty( $audio_meta['length'] ) ) :
+				if ( !empty( $audio_meta['length'] ) ) {
 					$duration = $audio_meta['length'];
-				elseif ( !empty( $audio_meta['length_formatted'] ) ) :
+				} elseif ( !empty( $audio_meta['length_formatted'] ) ) {
 					$duration = nprstory_convert_duration_to_seconds( $audio_meta['length_formatted'] );
-				elseif ( !empty( $pieces[3] ) ) :
+				} elseif ( !empty( $pieces[3] ) ) {
 					$metadata = unserialize( trim( $pieces[3] ) );
 					$duration = ( !empty($metadata['duration'] ) ) ? nprstory_convert_duration_to_seconds( $metadata['duration'] ) : 0;
-				endif;
-				
+				}
+
 				$story[] = [
 					'tag' => 'audio',
 					'children' => [

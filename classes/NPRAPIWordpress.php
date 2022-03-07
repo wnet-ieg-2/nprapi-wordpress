@@ -750,11 +750,11 @@ class NPRAPIWordpress extends NPRAPI {
 	function add_paragraph_tag( $p ) {
 		$output = '';
 		if ( preg_match( '/^<[a-zA-Z0-9 \="\-_\']+>.+<[a-zA-Z0-9\/]+>$/', $p ) ) {
-			if ( preg_match( '/<(a href|em|strong)/', $p ) ) :
+			if ( preg_match( '/<(a href|em|strong)/', $p ) ) {
 				$output = '<p>' . $p . '</p>';
-			else :
+			} else {
 				$output = $p;
-			endif;
+			}
 		} else {
 			$output = '<p>' . $p . '</p>';
 		}
@@ -943,12 +943,12 @@ class NPRAPIWordpress extends NPRAPI {
 				foreach ( $layoutarry as $ordernum => $element ) {
 					$reference = $element['reference'];
 					switch ( $element['type'] ) {
-						case 'text':
+						case 'text' :
 							if ( !empty( $paragraphs[ $reference ] ) ) {
 								$body_with_layout .= $this->add_paragraph_tag( $paragraphs[ $reference ] ) . "\n";
 							}
 							break;
-						case 'staticHtml':
+						case 'staticHtml' :
 							if ( !empty( $htmlAssets[ $reference ] ) ) {
 								$body_with_layout .= $htmlAssets[ $reference ] . "\n\n";
 								$returnary['has_external'] = TRUE;
@@ -957,7 +957,7 @@ class NPRAPIWordpress extends NPRAPI {
 								}
 							}
 							break;
-						case 'externalAsset':
+						case 'externalAsset' :
 							if ( !empty( $externalAssets[ $reference ] ) ) {
 								$figclass = "wp-block-embed";
 								if ( !empty( (string)$externalAssets[ $reference ]['type'] ) && strtolower( (string)$externalAssets[ $reference ]['type'] ) == 'youtube') {
@@ -980,7 +980,7 @@ class NPRAPIWordpress extends NPRAPI {
 								$body_with_layout .= $fightml;
 							}
 							break;
-						case 'multimedia':
+						case 'multimedia' :
 							if ( !empty( $multimedia[ $reference ] ) ) {
 								// check permissions
 								$perms = $multimedia[ $reference ]['permissions'];
@@ -1003,61 +1003,61 @@ class NPRAPIWordpress extends NPRAPI {
 								}
 							}
 							break;
-						case 'list':
-							if ( !empty( $collection[ $reference ] ) ) :
+						case 'list' :
+							if ( !empty( $collection[ $reference ] ) ) {
 								$thiscol = $collection[ $reference ];
 								$fightml = '';
-								if ( strtolower( $thiscol['displayType'] ) == "slideshow" ) :
+								if ( strtolower( $thiscol['displayType'] ) == "slideshow" ) {
 									$slides = [
 										'title' => ( !empty( $thiscol['title']->value ) ? $thiscol['title']->value : '' ),
 										'intro' => ( !empty( $thiscol['introText']->value ) ? $thiscol['introText']->value : '' ),
 										'members' => []
 									];
-									foreach ( $thiscol['member'] as $cmem ) :
-										if ( !empty( $members[ $cmem->refId ] ) ) :
+									foreach ( $thiscol['member'] as $cmem ) {
+										if ( !empty( $members[ $cmem->refId ] ) ) {
 											$thismem = $members[ $cmem->refId ];
-											if ( !empty( $thismem['image'] ) ) :
+											if ( !empty( $thismem['image'] ) ) {
 												$thisimg = $storyimages[ $thismem['image']->refId ];
 												$image_url = $thisimg['image_url'];
 												$credits = [];
 												$full_credits = '';
-												if ( !empty( $thisimg['producer']->value ) ) :
+												if ( !empty( $thisimg['producer']->value ) ) {
 													$credits[] = $thisimg['producer']->value;
-												endif;
-												if ( !empty( $thisimg['provider']->value ) ) :
+												}
+												if ( !empty( $thisimg['provider']->value ) ) {
 													$credits[] = $thisimg['provider']->value;
-												endif;
-												if ( !empty( $thisimg['copyright']->value ) ) :
+												}
+												if ( !empty( $thisimg['copyright']->value ) ) {
 													$credits[] = $thisimg['copyright']->value;
-												endif;
-												if ( !empty( $credits ) ) :
+												}
+												if ( !empty( $credits ) ) {
 													$full_credits = ' (' . implode( ' | ', $credits ) . ')';
-												endif;
+												}
 												$link_text = $thisimg['title']->value . $full_credits;
-												foreach ( $thisimg['crop'] as $crop ) :
-													if ( $crop->type == $thismem['image']->crop ) :
+												foreach ( $thisimg['crop'] as $crop ) {
+													if ( $crop->type == $thismem['image']->crop ) {
 														$image_url = $crop->src;
-													endif;
-												endforeach;
+													}
+												}
 												$slides['members'][] = [
 													'src' => $image_url,
 													'text' => $link_text
 												];
-											endif;
-										endif;
-									endforeach;
+											}
+										}
+									}
 									$fightml = "[npr_gallery]" . json_encode( $slides ) . "[/npr_gallery]";
-								elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) :
+								} elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) {
 									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><ul>';
-									foreach ( $thiscol['member'] as $cmem ) :
+									foreach ( $thiscol['member'] as $cmem ) {
 										$fightml .= '<li><a href="' . $cmem['url'] . '" target="_blank">"' . $cmem['title']->value . '"</a>"' . $cmem['introText']->value . '"</li>';
-									endforeach;
+									}
 									$fightml .= '</ul></div></figure>';
-								endif;
+								}
 								$body_with_layout .= $fightml;
-							endif;
+							}
 							break;
-						default:
+						default :
 							if ( !empty( $storyimages[ $reference ] ) ) {
 								$figclass = "wp-block-image size-large";
 								$thisimg = $storyimages[ $reference ];
@@ -1098,10 +1098,10 @@ class NPRAPIWordpress extends NPRAPI {
 				$body_with_layout .= $this->add_paragraph_tag( (string)$paragraph->value ) . "\n";
 			}
 		}
-		if ( isset( $story->correction ) ) :
+		if ( isset( $story->correction ) ) {
 			$body_with_layout .= '<blockquote><h3>' . $story->correction->correctionTitle->value . ': <em>' . $story->correction->correctionDate->value . '</em></h3>' . $story->correction->correctionText->value .
 			'</blockquote>';
-		endif;
+		}
 		$returnary['body'] = nprstory_esc_html( $body_with_layout );
 		return $returnary;
 	}
