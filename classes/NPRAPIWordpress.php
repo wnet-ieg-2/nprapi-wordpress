@@ -770,7 +770,7 @@ class NPRAPIWordpress extends NPRAPI {
 	 * @return array with reconstructed body and flags describing returned elements
 	 */
 	function get_body_with_layout( $story, $layout ) {
-		$returnary = [ 'body' => FALSE, 'has_layout' => FALSE, 'has_image' => FALSE, 'has_video' => FALSE, 'has_external' => FALSE ];
+		$returnary = [ 'body' => FALSE, 'has_layout' => FALSE, 'has_image' => FALSE, 'has_video' => FALSE, 'has_external' => FALSE, 'has_slideshow' => FALSE ];
 		$body_with_layout = "";
 		if ( $layout ) {
 			if ( !empty( $story->layout->storytext ) ) {
@@ -1008,11 +1008,15 @@ class NPRAPIWordpress extends NPRAPI {
 								$thiscol = $collection[ $reference ];
 								$fightml = '';
 								if ( strtolower( $thiscol['displayType'] ) == "slideshow" ) {
-									$slides = [
-										'title' => ( !empty( $thiscol['title']->value ) ? $thiscol['title']->value : '' ),
-										'intro' => ( !empty( $thiscol['introText']->value ) ? $thiscol['introText']->value : '' ),
-										'members' => []
-									];
+									$returnary['has_slideshow'] = TRUE;
+									$caption = '';
+									if ( !empty( $json['title'] ) ) {
+										$caption .= '<h3>' . $json['title'] . '</h3>';
+									}
+									if ( !empty( $json['intro'] ) ) {
+										$caption .= '<p>' . $json['intro'] . '</p>';
+									}
+									$fightml .= '<figure class="wp-block-image"><div class="splide"><div class="splide__track"><ul class="splide__list">';
 									foreach ( $thiscol['member'] as $cmem ) {
 										if ( !empty( $members[ $cmem->refId ] ) ) {
 											$thismem = $members[ $cmem->refId ];
@@ -1033,20 +1037,21 @@ class NPRAPIWordpress extends NPRAPI {
 												if ( !empty( $credits ) ) {
 													$full_credits = ' (' . implode( ' | ', $credits ) . ')';
 												}
-												$link_text = $thisimg['title']->value . $full_credits;
+												$link_text = str_replace( '"', "'", $thisimg['title']->value . $full_credits );
 												foreach ( $thisimg['crop'] as $crop ) {
 													if ( $crop->type == $thismem['image']->crop ) {
 														$image_url = $crop->src;
 													}
 												}
-												$slides['members'][] = [
-													'src' => $image_url,
-													'text' => $link_text
-												];
+												$fightml .= '<li class="splide__slide"><img data-splide-lazy="' . esc_url( $image_url ) . '" alt="' . esc_attr( $link_text ) . '"><div>' . nprstory_esc_html( $link_text ) . '</div></li>';
 											}
 										}
 									}
-									$fightml = "[npr_gallery]" . json_encode( $slides ) . "[/npr_gallery]";
+									$fightml .= '</div></div></ul>';
+									if ( !empty( $caption ) ) {
+										$fightml .= '<figcaption>' . $caption . '</figcaption>';
+									}
+									$fightml .= '</figure>';
 								} elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) {
 									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><ul>';
 									foreach ( $thiscol['member'] as $cmem ) {
@@ -1101,6 +1106,12 @@ class NPRAPIWordpress extends NPRAPI {
 		if ( isset( $story->correction ) ) {
 			$body_with_layout .= '<blockquote><h3>' . $story->correction->correctionTitle->value . ': <em>' . $story->correction->correctionDate->value . '</em></h3>' . $story->correction->correctionText->value .
 			'</blockquote>';
+		}
+		if ( $returnary['has_slideshow'] ) {
+			$body_with_layout = '<link rel="stylesheet" href="' . NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css" />' .
+				$body_with_layout .
+				'<script src="' . NPRSTORY_PLUGIN_URL . 'assets/js/splide.min.js"></script>' .
+				'<script src="' . NPRSTORY_PLUGIN_URL . 'assets/js/splide-settings.js"></script>';
 		}
 		$returnary['body'] = nprstory_esc_html( $body_with_layout );
 		return $returnary;

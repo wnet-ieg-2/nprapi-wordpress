@@ -211,33 +211,3 @@ function nprstory_error_log( $thing ) {
 function nprstory_esc_html( $string ) {
 	return html_entity_decode( esc_html( $string ), ENT_QUOTES );
 }
-
-function nprstory_gallery_shortcode( $atts, $content, $tag ) {
-	$output = '';
-	if ( empty( $content ) ) {
-		return $output;
-	}
-	$json = json_decode( $content, true );
-	$caption = '';
-	$output = '<figure class="wp-block-image">';
-	if ( !empty( $json['title'] ) ) {
-		$caption .= '<h3>' . $json['title'] . '</h3>';
-	}
-	if ( !empty( $json['intro'] ) ) {
-		$caption .= '<p>' . $json['intro'] . '</p>';
-	}
-	$output .= '<div class="splide"><div class="splide__track"><ul class="splide__list">';
-	foreach( $json['members'] as $member ) {
-		$output .= '<li class="splide__slide"><img data-splide-lazy="' . esc_url( $member['src'] ) . '" alt="' . esc_attr( $member['text'] ) . '"><div>' . nprstory_esc_html( $member['text'] ) . '</div></li>';
-	}
-	$output .= '</div></div></ul>';
-	if ( !empty( $caption ) ) {
-		$output .= '<figcaption>' . $caption . '</figcaption>';
-	}
-	$output .= '</figure>';
-	wp_enqueue_script( 'npr-splide-js', NPRSTORY_PLUGIN_URL . 'assets/js/splide.min.js', [], '3.6.12', true );
-	wp_enqueue_script( 'npr-splide-js-settings', NPRSTORY_PLUGIN_URL . 'assets/js/splide-settings.js', [], '3.6.12', true );
-	wp_enqueue_style( 'npr-splide-css', NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css', [], '3.6.12' );
-	return nprstory_esc_html( $output );
-}
-add_shortcode( 'npr_gallery', 'nprstory_gallery_shortcode' );
