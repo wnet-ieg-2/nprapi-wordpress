@@ -704,10 +704,11 @@ class NPRAPIWordpress extends NPRAPI {
 			}
 			$body_xml = simplexml_load_string( $response[ 'body' ] );
 			if ( !empty( $body_xml->paragraph ) ) {
-				$transcript_body .= "<p><strong>Transcript :</strong></p>";
+				$transcript_body .= '<div class="npr-transcript"><p><strong>Transcript :</strong></p>';
 				foreach ( $body_xml->paragraph as $paragraph ) {
 					$transcript_body .= $this->add_paragraph_tag( $paragraph ) . "\n";
 				}
+				$transcript_body .= '</div>';
 			}
 		}
 		return $transcript_body;
