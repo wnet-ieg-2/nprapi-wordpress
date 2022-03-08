@@ -1104,8 +1104,8 @@ class NPRAPIWordpress extends NPRAPI {
 			}
 		}
 		if ( isset( $story->correction ) ) {
-			$body_with_layout .= '<blockquote><h3>' . $story->correction->correctionTitle->value . ': <em>' . $story->correction->correctionDate->value . '</em></h3>' . $story->correction->correctionText->value .
-			'</blockquote>';
+			$body_with_layout .= '<p class="correction"><strong>' . $story->correction->correctionTitle->value . ': <em>' . wp_date( get_option( 'date_format' ), strtotime( $story->correction->correctionDate->value ) ) . '</em></strong><br />' . strip_tags( $story->correction->correctionText->value ) .
+			'</p>';
 		}
 		if ( $returnary['has_slideshow'] ) {
 			$body_with_layout = '<link rel="stylesheet" href="' . NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css" />' .
