@@ -90,27 +90,6 @@ class DS_NPR_API {
 	 * Function to convert an alleged NPR story URL or ID into a story ID, then request it
 	 */
 	public function load_page_hook() {
-		// find the input that is allegedly a story id
-		// We validate these later
-		if ( isset( $_POST ) && isset( $_POST[ 'story_id' ] ) ) {
-			$story_id =  $_POST[ 'story_id' ] ;
-			if ( isset( $_POST['publishNow'] ) ) {
-				$publish = true;
-			}
-			if ( isset( $_POST['createDaft'] ) ) {
-				$publish = false;
-			}
-			if ( !check_admin_referer( 'nprstory_nonce_story_id', 'nprstory_nonce_story_id_field' ) ) {
-				wp_die(
-					__( 'Nonce did not verify in DS_NPR_API::load_page_hook. Are you sure you should be doing this?' ),
-					__( 'NPR Story API Error' ),
-					403
-				);
-			}
-		} elseif ( isset( $_GET['story_id'] ) && isset( $_GET['create_draft'] ) ) {
-			$story_id = $_GET['story_id'];
-		}
-
 		// if the current user shouldn't be doing this, fail
 		if ( !current_user_can( 'edit_posts' ) ) {
 			wp_die(
@@ -120,6 +99,29 @@ class DS_NPR_API {
 			);
 		}
 
+		// find the input that is allegedly a story id
+		// We validate these later
+		if ( isset( $_POST ) && isset( $_POST[ 'story_id' ] ) ) {
+			if ( !check_admin_referer( 'nprstory_nonce_story_id', 'nprstory_nonce_story_id_field' ) ) {
+				wp_die(
+					__( 'Nonce did not verify in DS_NPR_API::load_page_hook. Are you sure you should be doing this?' ),
+					__( 'NPR Story API Error' ),
+					403
+				);
+			}
+			$story_id = sanitize_text_field( $_POST[ 'story_id' ] );
+			if ( isset( $_POST['publishNow'] ) ) {
+				$publish = true;
+			}
+			if ( isset( $_POST['createDaft'] ) ) {
+				$publish = false;
+			}
+		} elseif ( isset( $_GET['story_id'] ) && isset( $_GET['create_draft'] ) ) {
+			$story_id = sanitize_text_field( $_GET['story_id'] );
+		}
+
+
+
 		// try to get the ID of the story from the URL
 		if ( isset( $story_id ) ) {
 			//check to see if we got an ID or a URL
@@ -128,6 +130,7 @@ class DS_NPR_API {
 					$story_id = $story_id;
 				}
 			} else {
+				$story_id = sanitize_url( $story_id );
 				// url format: /yyyy/mm/dd/id
 				// url format: /blogs/name/yyyy/mm/dd/id
 				$story_id = preg_replace( '/https?\:\/\/[^\s\/]*npr\.org\/((([^\/]*\/){3,5})([0-9]{8,12}))\/.*/', '$4', $story_id );

@@ -97,7 +97,7 @@ function nprstory_publish_meta_box( $post ) {
 
 			<div class="row">
 				<button id="nprone-expiry-ok" class="button"><?php esc_html_e( 'OK', 'nprapi' ); ?></button>
-				<button id="nprone-expiry-cancel" class="link-effect"><?php esc_html_e( 'cancel', 'nprapi' ); ?></button>
+				<button id="nprone-expiry-cancel" class="link-effect"><?php esc_html_e( 'Cancel', 'nprapi' ); ?></button>
 			</div>
 		</div>
 	</div>

@@ -3,7 +3,7 @@
  * Plugin Name: NPR Story API
  * Description: A collection of tools for reusing content from NPR.org, now maintained and updated by NPR member station developers
  * Version: 1.9
- * Author: NPR Digital Services, Open Public Media 
+ * Author: NPR Digital Services, Open Public Media
  * License: GPLv2
 */
 /*
@@ -68,7 +68,6 @@ register_activation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_acti
 add_action( 'npr_ds_hourly_cron', [ 'DS_NPR_API', 'nprstory_cron_pull' ] );
 register_deactivation_hook( NPRSTORY_PLUGIN_DIR . 'ds-npr-api.php', 'nprstory_deactivation' );
 
-
 function nprstory_activation() {
 	global $wpdb;
 	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
@@ -124,13 +123,13 @@ function nprstory_deactivation() {
 
 function nprstory_deactivate() {
 	wp_clear_scheduled_hook( 'npr_ds_hourly_cron' );
-	$num =  get_option( 'ds_npr_num' );
-	if ( ! empty($num) ) {
+	$num = get_option( 'ds_npr_num' );
+	if ( !empty( $num ) ) {
 		delete_option( 'ds_npr_num' );
 	}
 
 	$push_url = get_option( 'ds_npr_api_push_url' );
-	if ( ! empty( $push_url ) ) {
+	if ( !empty( $push_url ) ) {
 		delete_option( 'ds_npr_api_push_url' );
 	}
 }
@@ -142,7 +141,7 @@ function nprstory_show_message( $message, $errormsg = false ) {
 	} else {
 		echo '<div id="message" class="updated fade">';
 	}
-	echo "<p><strong>$message</strong></p></div>";
+	echo nprstory_esc_html( "<p><strong>$message</strong></p></div>" );
 }
 
 add_action( 'init', 'nprstory_create_post_type' );
@@ -192,7 +191,7 @@ function nprstory_add_meta_boxes() {
 		}
 	}
 }
-add_action('add_meta_boxes', 'nprstory_add_meta_boxes');
+add_action( 'add_meta_boxes', 'nprstory_add_meta_boxes' );
 
 /**
  * Function to only enable error_logging if WP_DEBUG is true
@@ -204,4 +203,11 @@ function nprstory_error_log( $thing ) {
 	if ( WP_DEBUG ) {
 		error_log( $thing ); //debug use
 	}
+}
+
+/**
+ * Function to help with escaping HTML, especially for admin screens
+ */
+function nprstory_esc_html( $string ) {
+	return html_entity_decode( esc_html( $string ), ENT_QUOTES );
 }

@@ -34,7 +34,7 @@ function nprstory_update_column_content( $column_name, $post_ID ) {
 		$retrieved = get_post_meta( $post_ID, NPR_RETRIEVED_STORY_META_KEY, true );
 		if ( $retrieved ) {
 			$api_id = get_post_meta( $post_ID, NPR_STORY_ID_META_KEY, TRUE );
-			echo '<a href="' . admin_url( 'edit.php?page=get-npr-stories&story_id=' .$api_id ) . '"> Update </a>';
+			echo nprstory_esc_html( '<a href="' . admin_url( 'edit.php?page=get-npr-stories&story_id=' .$api_id ) . '"> Update </a>' );
 		}
 	}
 }
@@ -49,8 +49,8 @@ function nprstory_bulk_action_update_dropdown() {
 	?>
 	<script type="text/javascript">
 		jQuery(document).ready(function($) {
-			$('<option>').val('updateNprStory').text('<?php _e('Update NPR Story'); ?>').appendTo("select[name='action']");
-			$('<option>').val('updateNprStory').text('<?php _e('Update NPR Story'); ?>').appendTo("select[name='action2']");
+			$('<option>').val('updateNprStory').text('<?php _e( 'Update NPR Story' ); ?>').appendTo("select[name='action']");
+			$('<option>').val('updateNprStory').text('<?php _e( 'Update NPR Story' ); ?>').appendTo("select[name='action2']");
 		});
 	</script>
 	<?php
@@ -87,7 +87,7 @@ function nprstory_bulk_action_update_action() {
 					$api->request( $params, 'query', get_option( 'ds_npr_api_pull_url' ) );
 					$api->parse();
 					if ( empty( $api->message ) || $api->message->level != 'warning' ) {
-						nprstory_error_log( 'updating story for API ID='.$api_id );
+						nprstory_error_log( 'updating story for API ID=' . $api_id );
 						$story = $api->update_posts_from_stories();
 					}
 				}
@@ -115,20 +115,20 @@ function nprstory_get_stories() {
 			<h2>Get NPR Stories</h2>
 			<?php
 				if ( !$api_key ) {
-					nprstory_show_message( 'You do not currently have an API Key set.  <a href="' . admin_url( 'options-general.php?page=ds_npr_api' ) . '">Set your API Key here.</a>', TRUE );
+					nprstory_show_message( 'You do not currently have an API Key set. <a href="' . admin_url( 'options-general.php?page=ds_npr_api' ) . '">Set your API Key here.</a>', TRUE );
 				}
 				if ( !$pull_url ) {
-					nprstory_show_message ('You do not currently have an API Pull URL set.  <a href="' . admin_url('options-general.php?page=ds_npr_api') . '">Set your API Pull URL here.</a>', TRUE );
+					nprstory_show_message( 'You do not currently have an API Pull URL set. <a href="' . admin_url( 'options-general.php?page=ds_npr_api' ) . '">Set your API Pull URL here.</a>', TRUE );
 				}
 
 				// Get the story ID from the URL, then paste it into the input's value field with esc_attr
 				$story_id = '';
 				if ( ( isset( $_POST ) && isset( $_POST[ 'story_id' ] ) ) || ( isset( $_GET ) && isset( $_GET['story_id'] ) ) ) {
 					if ( !empty( $_POST['story_id'] ) ) {
-						$story_id = $_POST['story_id'];
+						$story_id = sanitize_text_field( $_POST['story_id'] );
 					}
-					if ( !empty($_GET['story_id'] ) ) {
-						$story_id = $_GET['story_id'];
+					if ( !empty( $_GET['story_id'] ) ) {
+						$story_id = sanitize_text_field( $_GET['story_id'] );
 					}
 				}
 			?>
