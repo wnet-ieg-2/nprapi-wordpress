@@ -5,7 +5,7 @@ A collection of tools for publishing from and to NPR's Story API. [Find this plu
 - Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver
 - Requires at least: 3.8.14
 - Tested up to: 5.9.1
-- Stable tag: 1.9
+- Stable tag: 1.9.1
 - License: GPLv2
 - License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,7 @@ The NPR Story API Plugin provides push and pull functionality with the NPR Story
 
 NPR's API is a content API, which essentially provides a structured way for other computer applications to get NPR stories in a predictable, flexible and powerful way. The content that is available includes audio from most NPR programs dating back to 1995 as well as text, images and other web-only content from NPR and NPR member stations. This archive consists of over 250,000 stories that are grouped into more than 5,000 different aggregations.
 
-Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew).
+Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://studio.npr.org).
 
 The WordPress plugin was originally developed as an Open Source plugin by NPR Digital Services and is now supported by developers with NPR member stations working within the Open Public Media group. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please visit our [GitHub repository](https://github.com/OpenPublicMedia/nprapi-wordpress) and post an issue or contribute a pull request.
 
@@ -29,7 +29,7 @@ The WordPress plugin was originally developed as an Open Source plugin by NPR Di
 
 ### Can anyone get an NPR Story API Key?
 
-We are no longer provisioning public API key for our legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://nprsupport.desk.com/customer/login?return_to=%2Fcustomer%2Fportal%2Femails%2Fnew).
+NPR is no longer provisioning public API keys for their legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://studio.npr.org).
 
 ### Can anyone push content into the NPR Story API using this plugin?
 
@@ -37,11 +37,11 @@ Push requires an Organization ID in the NPR Story API, which is typically given 
 
 ### Where can I find NPR's documentation on the NPR Story API?
 
-There is some documentation in the NPR Story API site: [www.npr.org/api/index.php](https://www.npr.org/api/index.php).
+There is some documentation in the NPR Story API site: [legacy.npr.org/api/index.php](https://legacy.npr.org/api/index).
 
 ### Is there an easy way to directly query the NPR Story API?
 
-You bet, just visit the NPR Query Generator: [www.npr.org/api/queryGenerator.php](https://www.npr.org/api/queryGenerator.php)
+You bet, just visit the NPR Query Generator: [legacy.npr.org/api/queryGenerator.php](https://legacy.npr.org/api/queryGenerator.php)
 
 ## Screenshots
 
@@ -69,6 +69,10 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+
+### V1.9.1
+* Multiple bug fixes for the new rich layout option, including transcripts, corrections, and support for slideshows [PR #12](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/12) and [PR #13](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/13)
+* Removed direct cURL reference, as well as adding proper sanitization and escaping for externally pulled content
 
 ### V1.9
 
@@ -179,10 +183,10 @@ This version will allow admins to configure their WordPress site to retrieve mul
 
 * From the **Settings -> NPR API Get Multi** page (wp-admin/options-general.php?page=ds_npr_api_get_multi_settings) an admin can add a number of queries.
 * These query entries can contain an API ID for a single story, or an ID for a specific category, program, topic, etc.
-* The query can also contain the full query string can be created from the NPR Story API Query Generator: <https://www.npr.org/api/queryGenerator.php>
+* The query can also contain the full query string can be created from the NPR Story API Query Generator: <https://legacy.npr.org/api/queryGenerator.php>
 * You can also enter the URL for a story you found on npr.org.
 * The entered queries will be executed via the Wordpress cron functionality, hourly.
-* Any new stories that are available will be automatically published.  You can find a list of query filters at the npr.org's API documentation page: <https://www.npr.org/api/inputReference.php>
+* Any new stories that are available will be automatically published.  You can find a list of query filters at the npr.org's API documentation page: <https://legacy.npr.org/api/inputReference.php>
 * Stories retrieved from the NPR Story API will be created as Posts in WordPress.  Each post will have a number of meta fields associated with the post.  These meta fields will all begin with `npr_` and can be viewed on a post edit screen with Custom Fields option enabled through Screen Options. A story from the API that has a primary image defined will have that image set as the featured image of the Wordpress post.  Any bylines for the NPR Story will be stored in the meta field `npr_byline`. The list of npr_ meta fields is:
 
 		npr_api_link
@@ -204,11 +208,11 @@ This version will allow admins to configure their WordPress site to retrieve mul
 As not a lot of users have installed the V1.0 of the NPR Story API Plugin, there are a couple of things to keep in mind.
 
 * On the NPR Story API settings page (wp-admin/options-general.php?page=ds_npr_api) there are 4 fields.
-  - API KEY - This is your NPR Story API Key that you can get from NPR.  If you wish to push stories to the NPR Story API you'll need to have your key configured by NPR Digital Services.  Please contact Digital Services with a support request at <https://info.ds.npr.org//support.html>
+  - API KEY - This is your NPR Story API Key that you can get from NPR.  If you wish to push stories to the NPR Story API you'll need to have your key configured by NPR Digital Services.  Please contact Digital Services with a support request at <https://studio.npr.org>
   - Pull URL - This is the root url for retrieving stories.  For testing purposes, you should configure this to be `https://api-s1.npr.org`. NOTE: this url should not contain a trailing slash.
   - Push URL - Much like the pull url, this url is used to pushing stories to the NPR Story API. Again, for testing purposes, you can utilize NPR's staging server  at `https://api-s1.npr.org`. If you do not wish to push your content, or your NPR Story API has not been authorized, you should leave this field empty and the WordPress plugin will not attempt to push you content to the NPR Story API.
-  - Org ID - This is your organization's ID assigned by NPR.  If you don't know your Org ID, please contact Digital Services at: <https://info.ds.npr.org/support.html>
-* You can pull stories one at a time from the NPR Story API by using the Get NPR Stories page under admin Posts menu (wp-admin/edit.php?page=get-npr-stories). This can be story ID from the API, or the URL for the story from npr.org. For help in finding possible query options, please use the Query Generator at <https://www.npr.org/api/queryGenerator.php> Documentation is at: <https://www.npr.org/api/inputReference.php>
+  - Org ID - This is your organization's ID assigned by NPR.  If you don't know your Org ID, please contact Digital Services at: <https://studio.npr.org>
+* You can pull stories one at a time from the NPR Story API by using the Get NPR Stories page under admin Posts menu (wp-admin/edit.php?page=get-npr-stories). This can be story ID from the API, or the URL for the story from npr.org. For help in finding possible query options, please use the Query Generator at <https://legacy.npr.org/api/queryGenerator.php> Documentation is at: <https://legacy.npr.org/api/inputReference.php>
 
 ## Upgrade Notice
 
