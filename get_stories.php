@@ -38,7 +38,7 @@ class DS_NPR_API {
 		*/
 
 		// here we go.
-		$num =  get_option( 'ds_npr_num' );
+		$num = get_option( 'ds_npr_num' );
 		for ( $i=0; $i < $num; $i++ ) {
 			$api = new NPRAPIWordpress();
 			$q = 'ds_npr_query_' . $i;
@@ -46,7 +46,7 @@ class DS_NPR_API {
 			if ( !empty( $query_string ) ) {
 				nprstory_error_log( 'Cron '. $i . ' querying NPR API for ' . $query_string );
 				//if the query string contains the pull url and 'query', just make request from the API
-				if ( stristr( $query_string, get_option( 'ds_npr_api_pull_url' ) ) && stristr( $query_string,'query' ) ) {
+				if ( stristr( $query_string, get_option( 'ds_npr_api_pull_url' ) ) && stristr( $query_string, 'query' ) ) {
 					$api->query_by_url( $query_string );
 				} else {
 					/*

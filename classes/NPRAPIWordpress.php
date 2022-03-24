@@ -54,6 +54,10 @@ class NPRAPIWordpress extends NPRAPI {
 			$url .= '&apiKey='. get_option( 'ds_npr_api_key' );
 		}
 
+		if ( !stristr( $url, 'profileTypeId=' ) ) {
+			$url .= '&profileTypeId=1,15';
+		}
+
 		$this->request->request_url = $url;
 
 		//fill out the $this->request->param array so we can know what params were sent
