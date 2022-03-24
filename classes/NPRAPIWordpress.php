@@ -54,8 +54,13 @@ class NPRAPIWordpress extends NPRAPI {
 			$url .= '&apiKey='. get_option( 'ds_npr_api_key' );
 		}
 
-		if ( !stristr( $url, 'profileTypeId=' ) ) {
-			$url .= '&profileTypeId=1,15';
+		$include_podcasts = ( !empty( get_option( 'dp_npr_query_include_podcasts' ) ) ? TRUE : FALSE );
+		if ( $include_podcasts ) {
+			if ( !stristr( $url, 'profileTypeId=' ) ) {
+				$url .= '&profileTypeId=1,15';
+			} else {
+				$url = preg_replace( '/(profileTypeId=[0-9,]+)/', 'profileTypeId=1,15', $url );
+			}
 		}
 
 		$this->request->request_url = $url;
@@ -1002,7 +1007,11 @@ class NPRAPIWordpress extends NPRAPI {
 						case 'container' :
 							if ( !empty( $container[ $reference ] ) ) {
 								$thiscon = $container[ $reference ];
-								$fightml = "<figure class=\"wp-block-embed npr-container\"><div class=\"wp-block-embed__wrapper\">";
+								$figclass = 'npr-container';
+								if ( !empty( $thiscon['colSpan']->value ) && $thiscon['colSpan']->value < 4 ) {
+									$figclass .= ' npr-container-col-1';
+								}
+								$fightml = "<figure class=\"wp-block-embed $figclass\"><div class=\"wp-block-embed__wrapper\">";
 								if ( !empty( $thiscon['title']->value ) ) {
 									$fightml .= "<h2>" . $thiscon['title']->value . "</h2>";
 								}
@@ -1128,6 +1137,42 @@ class NPRAPIWordpress extends NPRAPI {
 		if ( isset( $story->correction ) ) {
 			$body_with_layout .= '<p class="correction"><strong>' . $story->correction->correctionTitle->value . ': <em>' . wp_date( get_option( 'date_format' ), strtotime( $story->correction->correctionDate->value ) ) . '</em></strong><br />' . strip_tags( $story->correction->correctionText->value ) .
 			'</p>';
+		}
+		if ( isset( $story->audio ) ) {
+			$audio_file = '';
+			foreach ( (array)$story->audio as $n => $audio ) {
+				if ( $audio->type == 'primary' ) {
+					if ( $audio->permissions->download->allow == 'true' ) {
+						if ( $audio->format->mp3['mp3']->type == 'mp3' ) {
+							$audio_file = $audio->format->mp3['mp3']->value;
+						}
+					} elseif ( $audio->permissions->stream->allow == 'true' ) {
+						if ( !empty( $audio->format->mp3->value ) ) {
+							if ( $audio->format->mp3['m3u']->type == 'm3u' ) {
+								$response = wp_remote_get( $audio->format->mp3['m3u']->value );
+								if ( is_wp_error( $response ) ) {
+									/**
+									 * @var WP_Error $response
+									 */
+									$code = $response->get_error_code();
+									$message = $response->get_error_message();
+									$message = sprintf( 'Error requesting audio m3u via API URL: %s (%s [%d])', $audio->format->mp3['m3u']->value, $message,  $code );
+									error_log( $message );
+									continue;
+								}
+								$audio_file = $response['body'];
+							}
+						} elseif ( !empty( $audio->format->mediastream->value ) ) {
+							$audio_file = str_replace( 'rtmp://flash.npr.org/ondemand/mp3:', 'https://ondemand.npr.org/', $audio->format->mediastream->value );
+						} elseif ( !empty( $audio->format->hlsOnDemand->value ) ) {
+							$audio_file = str_replace( [ 'https://ondemandhls.npr.org/nprhls/', '/master.m3u8' ], [ 'https://ondemand.npr.org/anon.npr-mp3', '.mp3' ], $audio->format->hlsOnDemand->value );
+						}
+					}
+				}
+			}
+			if ( !empty( $audio_file ) ) {
+				$body_with_layout = '[audio mp3="'.$audio_file.'"][/audio]' . "\n" . $body_with_layout;
+			}
 		}
 		if ( $returnary['has_slideshow'] ) {
 			$body_with_layout = '<link rel="stylesheet" href="' . NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css" />' .

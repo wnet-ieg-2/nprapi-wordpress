@@ -113,6 +113,9 @@ function nprstory_settings_init() {
 	add_settings_field( 'dp_npr_query_use_layout', 'Use rich layout on pulled posts if available', 'nprstory_query_use_layout_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings' );
 	register_setting( 'ds_npr_api_get_multi_settings', 'dp_npr_query_use_layout' , 'nprstory_validation_callback_checkbox');
 
+	add_settings_field( 'dp_npr_query_include_podcasts', 'Include Podcast Episodes?', 'nprstory_query_include_podcasts_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings' );
+	register_setting( 'ds_npr_api_get_multi_settings', 'dp_npr_query_include_podcasts' , 'nprstory_validation_callback_checkbox');
+
 
 	add_settings_field( 'ds_npr_pull_post_type', 'NPR Pull Post Type', 'nprstory_pull_post_type_callback', 'ds_npr_api', 'ds_npr_api_settings' );
 	register_setting( 'ds_npr_api', 'ds_npr_pull_post_type', 'nprstory_validation_callback_select' );
@@ -182,6 +185,19 @@ function nprstory_query_use_layout_callback() {
 
 	echo nprstory_esc_html( $check_box_string . "<p>If 'layout' is available in the NPR Story API output for your key, checking this box will import posts with more complex HTML to render any images, YouTube videos, Tweets, iframes, or JavaScript-based widgets within the post in the order they appeared on the NPR website. Only the 'primary' image for the story will be sideloaded into the Media Library, all other images will be linked from NPR.</p><p>If 'layout' is not available in your API results and you want to use this feature, open a ticket with NPR requesting 'layout permissions' for your Story API Key, and include the key in the ticket request.</p><p><em><strong>CAUTION:</strong> Checking this box will disables the normal 'wp_kses' filtering for imported posts that prevents any JavaScript from being included in the post. There is still some sanitization happening, but we assume that NPR Story API posts will not have malicious scripts.</em></p>" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_query_use_layout', 'nprstory_nonce_ds_npr_query_use_layout_name', true, true );
+}
+
+function nprstory_query_include_podcasts_callback() {
+	$include_podcasts = get_option( 'dp_npr_query_include_podcasts' );
+	$check_box_string = '<input id="dp_npr_query_include_podcasts" name="dp_npr_query_include_podcasts" type="checkbox" value="true"';
+
+	if ( $include_podcasts ) {
+		$check_box_string .= ' checked="checked" ';
+	}
+	$check_box_string .= "/>";
+
+	echo nprstory_esc_html( $check_box_string . "<p>Checking this box will include podcast episodes alongside stories when pulling from the NPR Story API.</p>" );
+	wp_nonce_field( 'nprstory_nonce_ds_npr_query_include_podcasts', 'nprstory_nonce_ds_npr_query_include_podcasts_name', true, true );
 }
 
 function nprstory_query_multi_cron_interval_callback() {
