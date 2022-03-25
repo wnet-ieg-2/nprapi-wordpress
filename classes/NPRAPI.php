@@ -98,7 +98,7 @@ class NPRAPI {
 		if ( !empty( $object->message ) ) {
 			if ( $this->get_attribute( $object->message, 'level' ) == 'warning' ) {
 				$this->notices[] = $object->message->text;
-				nprstory_show_message( 'Error retrieving story.<br> API Message = "' . $object->message->text . '"<br>The requested story was not found, or might be a podcast episode. Check your settings in the Settings > NPR API Get Multi page.', TRUE );
+				nprstory_show_message( 'Error retrieving story.<br>API Message = "' . $object->message->text . '"', TRUE );
 				return;
 			}
 			$this->message->level = $this->get_attribute( $object->message, 'level' );

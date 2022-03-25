@@ -47,8 +47,6 @@ define( 'NPR_IMAGE_CAPTION_META_KEY', 'npr_image_caption' );
 define( 'NPR_STORY_HAS_LAYOUT_META_KEY', 'npr_has_layout' );
 define( 'NPR_STORY_HAS_VIDEO_META_KEY', 'npr_has_video' );
 
-define( 'NPR_STORY_INCLUDE_PODCASTS', 'npr_include_podcasts' );
-
 define( 'NPR_PUSH_STORY_ERROR', 'npr_push_story_error' );
 
 define( 'NPR_MAX_QUERIES', 10 );

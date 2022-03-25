@@ -147,7 +147,7 @@ class DS_NPR_API {
 			// todo: check that the API key is actually set
 			$api = new NPRAPIWordpress();
 
-			$params = [ 'id' => $story_id, 'apiKey' => get_option( 'ds_npr_api_key' ) ];
+			$params = [ 'id' => $story_id, 'apiKey' => get_option( 'ds_npr_api_key' ), 'profileTypeId' => '1,15' ];
 			$api->request( $params, 'query', get_option( 'ds_npr_api_pull_url' ) );
 			$api->parse();
 

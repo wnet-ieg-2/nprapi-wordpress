@@ -54,15 +54,6 @@ class NPRAPIWordpress extends NPRAPI {
 			$url .= '&apiKey='. get_option( 'ds_npr_api_key' );
 		}
 
-		$include_podcasts = ( !empty( get_option( 'dp_npr_query_include_podcasts' ) ) ? TRUE : FALSE );
-		if ( $include_podcasts ) {
-			if ( !stristr( $url, 'profileTypeId=' ) ) {
-				$url .= '&profileTypeId=1,15';
-			} else {
-				$url = preg_replace( '/(profileTypeId=[0-9,]+)/', 'profileTypeId=1,15', $url );
-			}
-		}
-
 		$this->request->request_url = $url;
 
 		//fill out the $this->request->param array so we can know what params were sent
