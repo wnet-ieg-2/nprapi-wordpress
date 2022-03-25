@@ -91,7 +91,7 @@ function nprstory_settings_init() {
 		register_setting( 'ds_npr_api_get_multi_settings', 'ds_npr_query_' . $i , 'nprstory_validation_callback_url');
 
 		// Add ProfileTypeIDs
-		add_settings_field( 'ds_npr_query_profileTypeID_' . $i, 'Add Profile Type IDs for querystring' . $i, 'ds_npr_api_query_profileTypeID_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings', $i );       
+		add_settings_field( 'ds_npr_query_profileTypeID_' . $i, 'Add Profile Type IDs for querystring ' . $i, 'ds_npr_api_query_profileTypeID_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings', $i );
 		register_setting( 'ds_npr_api_get_multi_settings', 'ds_npr_query_profileTypeID_' . $i, 'nprstory_validation_callback_url' );
 
 		//ds_npr_query_publish_
@@ -251,9 +251,9 @@ function ds_npr_api_query_tags_callback( $i ) {
 // profile type id
 function ds_npr_api_query_profileTypeID_callback( $i ) {
 	$name = 'ds_npr_query_profileTypeID_' . $i;
-	$option = get_option( $name );
+	$option = get_option( $name, '1' );
 
-	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p>***Optional Profile ID Type(s) to each story pulled from NPR (comma separated).</p>" );
+	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p>***Optional Profile ID Type(s) to each story pulled from NPR (comma separated). Default is 1 (story), 15 (podcast episodes) also available.</p>" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_profileidtype_' . $i, 'nprstory_nonce_ds_npr_profileidtype_' . $i . '_name', true, true );
 	echo "<p><hr></p>";
 }
