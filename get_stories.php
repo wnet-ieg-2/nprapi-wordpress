@@ -42,6 +42,7 @@ class DS_NPR_API {
 		for ( $i=0; $i < $num; $i++ ) {
 			$api = new NPRAPIWordpress();
 			$q = 'ds_npr_query_' . $i;
+			$profileTypeID = get_option( $p );
 			$query_string = get_option( $q );
 			if ( !empty( $query_string ) ) {
 				nprstory_error_log( 'Cron '. $i . ' querying NPR API for ' . $query_string );
@@ -60,7 +61,7 @@ class DS_NPR_API {
 							var_export( get_option( 'ds_npr_api_pull_url' ), true )
 						) ); // debug use
 					} else {
-						$params = [ 'id' => $query_string, 'apiKey' => get_option( 'ds_npr_api_key' ) ];
+						$params = [ 'id' => $query_string, 'profileTypeId' => $profileTypeID, 'apiKey' => get_option( 'ds_npr_api_key' )];
 						$api->request( $params, 'query', get_option( 'ds_npr_api_pull_url' ) );
 					}
 				}

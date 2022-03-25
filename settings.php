@@ -29,6 +29,7 @@ function nprstory_add_query_page() {
 		delete_option( 'ds_npr_query_category_' . $k );
 		delete_option( 'ds_npr_query_tags_' . $k );
 		delete_option( 'ds_npr_query_publish_' . $k );
+		delete_option( 'ds_npr_query_profileTypeID_' . $k );
 		$k++;
 		$opt = get_option( 'ds_npr_query_' . $k );
 	}
@@ -42,6 +43,7 @@ function nprstory_add_query_page() {
 			delete_option( 'ds_npr_query_category_' . $k );
 			delete_option( 'ds_npr_query_tags_' . $k );
 			delete_option( 'ds_npr_query_publish_' . $k );
+			delete_option( 'ds_npr_query_profileTypeID_' . $k );
 			$k++;
 		}
 	}
@@ -87,6 +89,10 @@ function nprstory_settings_init() {
 	for ( $i = 0; $i < $num; $i++ ) {
 		add_settings_field( 'ds_npr_query_' . $i, 'Query String ' . $i, 'nprstory_api_query_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings', $i );
 		register_setting( 'ds_npr_api_get_multi_settings', 'ds_npr_query_' . $i , 'nprstory_validation_callback_url');
+
+		// Add ProfileTypeIDs
+		add_settings_field( 'ds_npr_query_profileTypeID_' . $i, 'Add Profile Type IDs for querystring' . $i, 'ds_npr_api_query_profileTypeID_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings', $i );       
+		register_setting( 'ds_npr_api_get_multi_settings', 'ds_npr_query_profileTypeID_' . $i, 'nprstory_validation_callback_url' );
 
 		//ds_npr_query_publish_
 		add_settings_field( 'ds_npr_query_publish_' . $i, 'Publish Stories ' . $i, 'nprstory_api_query_publish_callback', 'ds_npr_api_get_multi_settings', 'ds_npr_api_get_multi_settings', $i );
@@ -239,6 +245,16 @@ function ds_npr_api_query_tags_callback( $i ) {
 
 	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p> Add tag(s) to each story pulled from NPR (comma separated).</p>" );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_tags_' . $i, 'nprstory_nonce_ds_npr_tags_' . $i . '_name', true, true );
+	echo "<p><hr></p>";
+}
+
+// profile type id
+function ds_npr_api_query_profileTypeID_callback( $i ) {
+	$name = 'ds_npr_query_profileTypeID_' . $i;
+	$option = get_option( $name );
+
+	echo nprstory_esc_html( "<input type='text' value='$option' name='$name' style='width: 300px;' /> <p>***Optional Profile ID Type(s) to each story pulled from NPR (comma separated).</p>" );
+	wp_nonce_field( 'nprstory_nonce_ds_npr_profileidtype_' . $i, 'nprstory_nonce_ds_npr_profileidtype_' . $i . '_name', true, true );
 	echo "<p><hr></p>";
 }
 
