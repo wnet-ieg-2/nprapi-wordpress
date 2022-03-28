@@ -961,7 +961,7 @@ class NPRAPIWordpress extends NPRAPI {
 								$figcaption = '';
 								if ( !empty( (string)$externalAssets[ $reference ]['credit'] ) || !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
 									if ( !empty( trim( (string)$externalAssets[ $reference ]['credit'] ) ) ) {
-										$figcaption .= "<cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
+										$figcaption .= " <cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
 									}
 									if ( !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
 										$figcaption .= trim( (string)$externalAssets[ $reference ]['caption'] );
@@ -983,7 +983,7 @@ class NPRAPIWordpress extends NPRAPI {
 									$figcaption = '';
 									if ( !empty( (string)$multimedia[ $reference ]['credit'] ) || !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
 										if (!empty( trim( (string)$multimedia[ $reference ]['credit'] ) ) ) {
-											$figcaption .= "<cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
+											$figcaption .= " <cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
 										}
 										if ( !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
 											$figcaption .= trim( (string)$multimedia[ $reference ]['caption'] );
@@ -1104,7 +1104,7 @@ class NPRAPIWordpress extends NPRAPI {
 										$cites .= ( !empty( $cites ) ? ' | ' . $thisitem : $thisitem );
 									}
 								}
-								$cites = ( !empty( $cites ) ? "<cite>$cites</cite>" : '' );
+								$cites = ( !empty( $cites ) ? " <cite>$cites</cite>" : '' );
 								$thiscaption .= $cites;
 								$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? "<figcaption>$thiscaption</figcaption>"  : '' );
 								$fightml .= ( !empty( $fightml ) && !empty( $figcaption ) ? $figcaption : '' );

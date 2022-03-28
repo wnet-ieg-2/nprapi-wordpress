@@ -5,8 +5,8 @@ A collection of tools for publishing from and to NPR's Story API. [Find this plu
 - Contributors: jwcounts, tamw-wnet, bdivver
 - Original developers: NPRDS, INN Labs
 - Requires at least: 3.8.14
-- Tested up to: 5.9.1
-- Stable tag: 1.9.1
+- Tested up to: 5.9.2
+- Stable tag: 1.9.2
 - License: GPLv2
 - License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,13 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+
+### V1.9.2
+* Added support for `container` elements in stories
+* Added the ability to specify profile types in recurring API queries (thanks to [@bdivver](https://github.com/bdivver)) [PR #15](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/15)
+* Streamlined/consolidated some of the parsing of story elements in `get_body_with_layout()`
+* Improved error handling when pulling a story that isn't available in the API
+* Pulling articles now includes the primary audio file as an `[audio]` shortcode at the top of the body
 
 ### V1.9.1
 * Multiple bug fixes for the new rich layout option, including transcripts, corrections, and support for slideshows [PR #12](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/12) and [PR #13](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/13)
