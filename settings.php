@@ -259,7 +259,7 @@ function ds_npr_api_query_profileTypeID_callback( $i ) {
 }
 
 function nprstory_api_num_multi_callback() {
-	$option = get_option('ds_npr_num');
+	$option = get_option( 'ds_npr_num' );
 	echo nprstory_esc_html( "<input type='number' value='$option' name='ds_npr_num' /> <p> Increase the number of queries by changing the number in the field above." );
 	wp_nonce_field( 'nprstory_nonce_ds_npr_num', 'nprstory_nonce_ds_npr_num_name', true, true );
 }

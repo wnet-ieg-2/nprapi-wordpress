@@ -27,8 +27,8 @@ define( 'NPR_STORY_ID_META_KEY', 'npr_story_id' );
 define( 'NPR_API_LINK_META_KEY', 'npr_api_link' );
 define( 'NPR_HTML_LINK_META_KEY', 'npr_html_link' );
 define( 'NPR_SHORT_LINK_META_KEY', 'npr_short_link' );
-define( 'NPR_STORY_CONTENT_META_KEY', 'npr_story_content' );
-define( 'NPR_BYLINE_META_KEY', 'npr_byline' );
+define( 'NPR_STORY_CONTENT_META_KEY', get_option( 'ds_npr_api_mapping_body', 'npr_story_content' ) );
+define( 'NPR_BYLINE_META_KEY', get_option( 'ds_npr_api_mapping_media_credit', 'npr_byline' ) );
 define( 'NPR_BYLINE_LINK_META_KEY', 'npr_byline_link' );
 define( 'NPR_MULTI_BYLINE_META_KEY', 'npr_multi_byline' );
 define( 'NPR_IMAGE_GALLERY_META_KEY', 'npr_image_gallery' );
@@ -40,8 +40,8 @@ define( 'NPR_STORY_DATE_MEATA_KEY', 'npr_story_date' );
 define( 'NPR_LAST_MODIFIED_DATE_KEY', 'npr_last_modified_date' );
 define( 'NPR_RETRIEVED_STORY_META_KEY', 'npr_retrieved_story' );
 
-define( 'NPR_IMAGE_CREDIT_META_KEY', 'npr_image_credit' );
-define( 'NPR_IMAGE_AGENCY_META_KEY', 'npr_image_agency' );
+define( 'NPR_IMAGE_CREDIT_META_KEY', get_option( 'ds_npr_api_mapping_media_credit', 'npr_image_credit' ) );
+define( 'NPR_IMAGE_AGENCY_META_KEY', get_option( 'ds_npr_api_mapping_media_agency', 'npr_image_agency' ) );
 define( 'NPR_IMAGE_CAPTION_META_KEY', 'npr_image_caption' );
 
 define( 'NPR_STORY_HAS_LAYOUT_META_KEY', 'npr_has_layout' );

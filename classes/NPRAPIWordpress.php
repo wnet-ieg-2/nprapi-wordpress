@@ -382,13 +382,13 @@ class NPRAPIWordpress extends NPRAPI {
 
 							// do the validation and storage stuff
 							require_once( ABSPATH . 'wp-admin/includes/image.php' ); // needed for wp_read_image_metadata used by media_handle_sideload during cron
-							$id = media_handle_sideload( $file_array, $post_id, $image->title->value );
+							$image_upload_id = media_handle_sideload( $file_array, $post_id, $image->title->value );
 							// If error storing permanently, unlink
-							if ( is_wp_error( $id ) ) {
+							if ( is_wp_error( $image_upload_id ) ) {
 								@unlink( $file_array['tmp_name'] );
 								$file_OK = FALSE;
 							} else {
-								$image_post = get_post( $id );
+								$image_post = get_post( $image_upload_id );
 								if ( !empty( $attached_images ) ) {
 									foreach( $attached_images as $att_image ) {
 										// see if the filename is very similar
@@ -404,7 +404,7 @@ class NPRAPIWordpress extends NPRAPI {
 										// coming in, ignore the new/temp file, it's probably the same
 										if ( strtolower( $attach_url_parts['filename'] ) == strtolower( $imagep_url_parts['filename'] ) ) {
 											@unlink( $file_array['tmp_name'] );
-											wp_delete_attachment( $id );
+											wp_delete_attachment( $image_upload_id );
 											$file_OK = FALSE;
 										}
 									}
@@ -413,15 +413,23 @@ class NPRAPIWordpress extends NPRAPI {
 
 							//set the primary image
 							if ( $image->type == 'primary' && $file_OK ) {
-								add_post_meta( $post_id, '_thumbnail_id', $id, true );
+								add_post_meta( $post_id, '_thumbnail_id', $image_upload_id, true );
 								//get any image meta data and attatch it to the image post
-								$image_metas = [
-									NPR_IMAGE_CREDIT_META_KEY => $image->producer->value,
-									NPR_IMAGE_AGENCY_META_KEY => $image->provider->value,
-									NPR_IMAGE_CAPTION_META_KEY => $image->caption->value
-								];
+								if ( NPR_IMAGE_CREDIT_META_KEY === NPR_IMAGE_AGENCY_META_KEY ) {
+									$image_credits = [ $image->producer->value, $image->provider->value ];
+									$image_metas = [
+										NPR_IMAGE_CREDIT_META_KEY => implode( ' | ', $image_credits ),
+										NPR_IMAGE_CAPTION_META_KEY => $image->caption->value
+									];
+								} else {
+									$image_metas = [
+										NPR_IMAGE_CREDIT_META_KEY => $image->producer->value,
+										NPR_IMAGE_AGENCY_META_KEY => $image->provider->value,
+										NPR_IMAGE_CAPTION_META_KEY => $image->caption->value
+									];
+								}
 								foreach ( $image_metas as $k => $v ) {
-									update_post_meta( $post_id, $k, $v );
+									update_post_meta( $image_upload_id, $k, $v );
 								}
 							}
 						}
@@ -534,7 +542,7 @@ class NPRAPIWordpress extends NPRAPI {
 							}
 						}
 					} elseif ( isset( $story->parent->type ) && $story->parent->type === 'category' ) {
-						/*
+						/**
 						* Filters term name prior to lookup of terms
 						*
 						* Allow a site to modify the terms looked-up before adding them to list of categories.
@@ -553,7 +561,7 @@ class NPRAPIWordpress extends NPRAPI {
 					}
 				}
 
-				/*
+				/**
 				* Filters category_ids prior to setting assigning to the post.
 				*
 				* Allow a site to modify category IDs before assigning to the post.
@@ -567,6 +575,30 @@ class NPRAPIWordpress extends NPRAPI {
 				$category_ids = apply_filters( 'npr_pre_set_post_categories', $category_ids, $post_id, $story );
 				if ( 0 < count( $category_ids ) && is_integer( $post_id ) ) {
 					wp_set_post_categories( $post_id, $category_ids );
+				}
+
+				// If the Co-Authors Plus plugin is installed, use the bylines from the API output to set guest authors
+				if ( function_exists( 'get_coauthors' ) ) {
+					global $coauthors_plus;
+					$coauthor_terms = [];
+					if ( !empty( $multi_by_line ) ) {
+						$bylines = explode( '|', $multi_by_line );
+						foreach ( $bylines as $bl ) {
+							$blx = explode( '~', $bl );
+							$search_author = $coauthors_plus->search_authors( $blx[0], [] );
+							if ( !empty( $search_author ) ) {
+								reset( $search_author );
+								$coauthor_terms[] = key( $search_author );
+							}
+						}
+					} elseif ( !empty( $by_line ) ) {
+						$search_author = $coauthors_plus->search_authors( $by_line, [] );
+						if ( !empty( $search_author ) ) {
+							reset( $search_author );
+							$coauthor_terms[] = key( $search_author );
+						}
+					}
+					wp_set_post_terms( $post_id, $coauthor_terms, $coauthors_plus->coauthor_taxonomy, false );
 				}
 			}
 			if ( $single_story ) {
@@ -651,9 +683,7 @@ class NPRAPIWordpress extends NPRAPI {
 	}
 
 	/**
-	 *
-	 * Because wordpress doesn't offer a method=DELETE for wp_remote_post, we needed to write a curl version to send delete
-	 * requests to the NPR API
+	 * wp_remote_request supports sending a custom method, so the cURL code has been removed
 	 *
 	 * @param  $api_id
 	 */
@@ -743,12 +773,18 @@ class NPRAPIWordpress extends NPRAPI {
 	function add_paragraph_tag( $p ) {
 		$output = '';
 		if ( preg_match( '/^<[a-zA-Z0-9 \="\-_\']+>.+<[a-zA-Z0-9\/]+>$/', $p ) ) {
-			if ( preg_match( '/<(a href|em|strong)/', $p ) ) {
+			if ( preg_match( '/^<(a href|em|strong)/', $p ) ) {
 				$output = '<p>' . $p . '</p>';
 			} else {
+				if ( strpos( $p, '<div class="storyMajorUpdateDate">' ) !== false ) {
+					$p = str_replace( [ '<div', '</div>' ], [ '<p', '</p>' ], $p );
+				}
 				$output = $p;
 			}
 		} else {
+			if ( strpos( $p, '<div class="fullattribution">' ) !== false ) {
+				$p = str_replace( [ '<div', '</div>' ], [ '</p><p', ''], $p );
+			}
 			$output = '<p>' . $p . '</p>';
 		}
 		return $output;

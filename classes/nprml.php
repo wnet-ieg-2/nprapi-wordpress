@@ -106,7 +106,7 @@ function nprstory_post_to_nprml_story( $post ) {
 	/*
 	 * If there is a custom byline configured, send that.
 	 *
-	 * If the site is using the coauthurs plugin, and get_coauthors exists, send the display names
+	 * If the site is using the coauthors plugin, and get_coauthors exists, send the display names
 	 * If no cool things are going on, just send the display name for the post_author field.
 	 */
 	$byline = FALSE;
