@@ -38,15 +38,15 @@ class DS_NPR_API {
 		*/
 
 		// here we go.
-		$num =  get_option( 'ds_npr_num' );
+		$num = get_option( 'ds_npr_num' );
 		for ( $i=0; $i < $num; $i++ ) {
 			$api = new NPRAPIWordpress();
-			$q = 'ds_npr_query_' . $i;
-			$query_string = get_option( $q );
+			$profileTypeID = get_option( 'ds_npr_query_profileTypeId_' . $i );
+			$query_string = get_option( 'ds_npr_query_' . $i );
 			if ( !empty( $query_string ) ) {
 				nprstory_error_log( 'Cron '. $i . ' querying NPR API for ' . $query_string );
 				//if the query string contains the pull url and 'query', just make request from the API
-				if ( stristr( $query_string, get_option( 'ds_npr_api_pull_url' ) ) && stristr( $query_string,'query' ) ) {
+				if ( stristr( $query_string, get_option( 'ds_npr_api_pull_url' ) ) && stristr( $query_string, 'query' ) ) {
 					$api->query_by_url( $query_string );
 				} else {
 					/*
@@ -60,7 +60,7 @@ class DS_NPR_API {
 							var_export( get_option( 'ds_npr_api_pull_url' ), true )
 						) ); // debug use
 					} else {
-						$params = [ 'id' => $query_string, 'apiKey' => get_option( 'ds_npr_api_key' ) ];
+						$params = [ 'id' => $query_string, 'profileTypeId' => $profileTypeID, 'apiKey' => get_option( 'ds_npr_api_key' )];
 						$api->request( $params, 'query', get_option( 'ds_npr_api_pull_url' ) );
 					}
 				}
@@ -147,7 +147,7 @@ class DS_NPR_API {
 			// todo: check that the API key is actually set
 			$api = new NPRAPIWordpress();
 
-			$params = [ 'id' => $story_id, 'apiKey' => get_option( 'ds_npr_api_key' ) ];
+			$params = [ 'id' => $story_id, 'apiKey' => get_option( 'ds_npr_api_key' ), 'profileTypeId' => '1,15' ];
 			$api->request( $params, 'query', get_option( 'ds_npr_api_pull_url' ) );
 			$api->parse();
 

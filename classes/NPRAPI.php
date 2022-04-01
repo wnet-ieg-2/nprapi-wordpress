@@ -96,8 +96,14 @@ class NPRAPI {
 		$this->add_simplexml_attributes( $object, $this );
 
 		if ( !empty( $object->message ) ) {
-			$this->message->id = $this->get_attribute( $object->message, 'id' );
+			if ( $this->get_attribute( $object->message, 'level' ) == 'warning' ) {
+				$this->notices[] = $object->message->text;
+				nprstory_show_message( 'Error retrieving story.<br>API Message = "' . $object->message->text . '"', TRUE );
+				return;
+			}
 			$this->message->level = $this->get_attribute( $object->message, 'level' );
+			$this->message->id = $this->get_attribute( $object->message, 'id' );
+
 		}
 
 		if ( !empty( $object->list->story ) ) {

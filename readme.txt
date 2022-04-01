@@ -1,15 +1,15 @@
 === NPR Story API ===
-Contributors: nprds, innlabs, jwcounts, tamw-wnet, bdivver
+Contributors: jwcounts, tamw-wnet, bdivver
 Donate link: https://www.npr.org/series/750002/support-public-radio
 Tags: npr, news, public radio, api
 Requires at least: 3.8.14
-Tested up to: 5.9.1
-Stable tag: 1.9.1
+Tested up to: 5.9.2
+Stable tag: 1.9.2
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: nprapi
 
-A collection of tools for reusing content from NPR.org supplied by Digital Services.
+A collection of tools for reusing content from NPR.org, now maintained and updated by NPR member station developers.
 
 == Description ==
 
@@ -19,7 +19,7 @@ NPR's API is a content API, which essentially provides a structured way for othe
 
 Access to the NPR Story API requires an API Key to NPR's legacy APIs. If you are an NPR member station or are working with an NPR member station and do not know your key, please [ask NPR station relations for help](https://studio.npr.org).
 
-The WordPress plugin was originally developed as an Open Source plugin by NPR Digital Services and is now supported by developers with NPR member stations working within the Open Public Media group. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please visit our [GitHub repository](https://github.com/OpenPublicMedia/nprapi-wordpress) and post an issue or contribute a pull request.
+The WordPress plugin was originally developed as an Open Source plugin by NPR and is now supported by developers with NPR member stations working within the Open Public Media group. If you would like to suggest features or bug fixes, or better yet if you would like to contribute new features or bug fixes please visit our [GitHub repository](https://github.com/OpenPublicMedia/nprapi-wordpress) and post an issue or contribute a pull request.
 
 == Installation ==
 
@@ -70,6 +70,13 @@ NPR Stories having got gotten
 
 
 == Changelog ==
+
+= V1.9.2 =
+* Added support for 'container' elements in stories
+* Added the ability to specify profile types in recurring API queries (thanks to [@bdivver](https://github.com/bdivver)) [PR #15](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/15)
+* Streamlined/consolidated some of the parsing of story elements in 'get_body_with_layout()'
+* Improved error handling when pulling a story that isn't available in the API
+* Pulling articles now includes the primary audio file as an '[audio]' shortcode at the top of the body
 
 = V1.9.1 =
 
@@ -210,10 +217,10 @@ This version will allow admins to configure their WordPress site to retrieve mul
 As not a lot of users have installed the V1.0 of the NPR Story API Plugin, there are a couple of things to keep in mind.
 
 * On the NPR Story API settings page (wp-admin/options-general.php?page=ds_npr_api) there are 4 fields.
-  - API KEY - This is your NPR Story API Key that you can get from NPR.  If you wish to push stories to the NPR Story API you'll need to have your key configured by NPR Digital Services.  Please contact Digital Services with a support request at <https://studio.npr.org>
+  - API KEY - This is your NPR Story API Key that you can get from NPR.  If you wish to push stories to the NPR Story API you'll need to have your key configured by NPR Support.  Please contact Digital Services with a support request at <https://studio.npr.org>
   - Pull URL - This is the root url for retrieving stories.  For testing purposes, you should configure this to be `https://api-s1.npr.org`. NOTE: this url should not contain a trailing slash.
   - Push URL - Much like the pull url, this url is used to pushing stories to the NPR Story API. Again, for testing purposes, you can utilize NPR's staging server  at `https://api-s1.npr.org`. If you do not wish to push your content, or your NPR Story API has not been authorized, you should leave this field empty and the WordPress plugin will not attempt to push you content to the NPR Story API.
-  - Org ID - This is your organization's ID assigned by NPR.  If you don't know your Org ID, please contact Digital Services at: <https://studio.npr.org>
+  - Org ID - This is your organization's ID assigned by NPR.  If you don't know your Org ID, please contact NPR Support at: <https://studio.npr.org>
 * You can pull stories one at a time from the NPR Story API by using the Get NPR Stories page under admin Posts menu (wp-admin/edit.php?page=get-npr-stories). This can be story ID from the API, or the URL for the story from npr.org. For help in finding possible query options, please use the Query Generator at <https://legacy.npr.org/api/queryGenerator.php> Documentation is at: <https://legacy.npr.org/api/inputReference.php>
 
 == Upgrade Notice ==

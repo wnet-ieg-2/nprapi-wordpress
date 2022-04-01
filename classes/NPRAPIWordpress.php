@@ -664,16 +664,8 @@ class NPRAPIWordpress extends NPRAPI {
 			'id' => $api_id
 		], get_option( 'ds_npr_api_push_url' ) . '/story' );
 
-		// wp doesn't let me do a wp_remote_post with method=DELETE so we have to make our own curl request.  fun
-		// a lot of this code came from WP's class-http object
 		$result = wp_remote_request( $url, [ 'method' => 'DELETE' ] );
 		$body = wp_remote_retrieve_body( $result );
-		// $handle = curl_init();
-		// curl_setopt( $handle, CURLOPT_CUSTOMREQUEST, 'DELETE' );
-		// curl_setopt( $handle, CURLOPT_URL, $url );
-		// curl_setopt( $handle, CURLOPT_RETURNTRANSFER, TRUE );
-		// curl_exec( $handle );
-		// curl_close( $handle );
 	}
 
 	/**
@@ -759,6 +751,69 @@ class NPRAPIWordpress extends NPRAPI {
 		} else {
 			$output = '<p>' . $p . '</p>';
 		}
+		return $output;
+	}
+
+	/**
+	 * Convert an NPRElement object into an array
+	 *
+	 * @param object $story
+	 *   An NPR Element object
+	 *
+	 * @param string $element
+	 *   The story elements to parse
+	 *
+	 * @return array
+	 *   An ID-based array of elements
+	 */
+	function parse_story_elements( $story, $element ) {
+		$output = [];
+		if ( isset( $story->{$element} ) ) {
+			$element_array = [];
+			if ( isset( $story->{$element}->id ) ) {
+				$element_array[] = $story->{$element};
+			} else {
+				// sometimes there are multiple objects
+				foreach ( (array)$story->{$element} as $elem ) {
+					if ( isset( $elem->id ) ) {
+						$element_array[] = $elem;
+					}
+				}
+			}
+			foreach ( $element_array as $elem ) {
+				$output[ $elem->id ] = (array)$elem;
+			}
+		}
+		return $output;
+	}
+
+	/**
+	 * Extract HTML links from NPRML output
+	 *
+	 * @param object $link
+	 *   An NPR Element object
+	 *
+	 * @return string
+	 *   The HTML link
+	 */
+	function link_extract( $links ) {
+		$output = '';
+		if ( !empty( $links ) ) :
+			if ( is_string( $links ) ) :
+				$output = $links;
+			elseif ( is_array( $links ) ) :
+				foreach ( $links as $link ) :
+					if ( empty( $link->type ) ) {
+						continue;
+					}
+					if ( 'html' === $link->type ) :
+						$output = $link->value;
+					endif;
+				endforeach;
+			elseif ( $links instanceof NPRMLElement && !empty( $links->value ) ) :
+				$output = $links->value;
+			endif;
+		endif;
 		return $output;
 	}
 
@@ -855,24 +910,6 @@ class NPRAPIWordpress extends NPRAPI {
 					}
 				}
 
-				$externalAssets = [];
-				if ( isset( $story->externalAsset ) ) {
-					$externals_array = [];
-					if ( isset( $story->externalAsset->type ) ) {
-						$externals_array[] = $story->externalAsset;
-					} else {
-						// sometimes there are multiple objects
-						foreach ( (array)$story->externalAsset as $extasset ) {
-							if ( isset( $extasset->type ) ) {
-								$externals_array[] = $extasset;
-							}
-						}
-					}
-					foreach ( $externals_array as $embed ) {
-						$externalAssets[ $embed->id ] = (array)$embed;
-					}
-				}
-
 				$htmlAssets = [];
 				if ( isset( $story->htmlAsset ) ) {
 					if ( isset( $story->htmlAsset->id ) ) {
@@ -887,59 +924,13 @@ class NPRAPIWordpress extends NPRAPI {
 					}
 				}
 
-				$multimedia = [];
-				if ( isset( $story->multimedia ) ) {
-					$multims_array = [];
-					if ( isset( $story->multimedia->id ) ) {
-						$multims_array[] = $story->multimedia;
-					} else {
-						// sometimes there are multiple objects
-						foreach ( (array)$story->multimedia as $multim ) {
-							if ( isset( $multim->id ) ) {
-								$multims_array[] = $multim;
-							}
-						}
-					}
-					foreach( $multims_array as $multim ) {
-						$multimedia[ $multim->id ] = (array)$multim;
-					}
-				}
-
-				$members = [];
-				if ( isset( $story->member ) ) {
-					$member_array = [];
-					if ( isset( $story->member->id ) ) {
-						$member_array[] = $story->member;
-					} else {
-						// sometimes there are multiple objects
-						foreach ( (array)$story->member as $member ) {
-							if ( isset( $member->id ) ) {
-								$member_array[] = $member;
-							}
-						}
-					}
-					foreach( $member_array as $member ) {
-						$members[ $member->id ] = (array)$member;
-					}
-				}
-
-				$collection = [];
-				if ( isset( $story->collection ) ) {
-					$collect_array = [];
-					if ( isset( $story->collection->id ) ) {
-						$collect_array[] = $story->collection;
-					} else {
-						// sometimes there are multiple objects
-						foreach ( (array)$story->collection as $collect ) {
-							if ( isset( $collect->id ) ) {
-								$collect_array[] = $collect;
-							}
-						}
-					}
-					foreach( $collect_array as $collect ) {
-						$collection[ $collect->id ] = (array)$collect;
-					}
-				}
+				$externalAssets = $this->parse_story_elements( $story, 'externalAsset' );
+				$multimedia = $this->parse_story_elements( $story, 'multimedia' );
+				$members = $this->parse_story_elements( $story, 'member' );
+				$collection = $this->parse_story_elements( $story, 'collection' );
+				$container = $this->parse_story_elements( $story, 'container' );
+				$listText = $this->parse_story_elements( $story, 'listText' );
+				$related = $this->parse_story_elements( $story, 'relatedLink' );
 
 				foreach ( $layoutarry as $ordernum => $element ) {
 					$reference = $element['reference'];
@@ -970,7 +961,7 @@ class NPRAPIWordpress extends NPRAPI {
 								$figcaption = '';
 								if ( !empty( (string)$externalAssets[ $reference ]['credit'] ) || !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
 									if ( !empty( trim( (string)$externalAssets[ $reference ]['credit'] ) ) ) {
-										$figcaption .= "<cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
+										$figcaption .= " <cite>" . trim( (string)$externalAssets[ $reference ]['credit'] ) . "</cite>";
 									}
 									if ( !empty( (string)$externalAssets[ $reference ]['caption'] ) ) {
 										$figcaption .= trim( (string)$externalAssets[ $reference ]['caption'] );
@@ -992,7 +983,7 @@ class NPRAPIWordpress extends NPRAPI {
 									$figcaption = '';
 									if ( !empty( (string)$multimedia[ $reference ]['credit'] ) || !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
 										if (!empty( trim( (string)$multimedia[ $reference ]['credit'] ) ) ) {
-											$figcaption .= "<cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
+											$figcaption .= " <cite>" . trim( (string)$multimedia[ $reference ]['credit'] ) . "</cite>";
 										}
 										if ( !empty( (string)$multimedia[ $reference ]['caption'] ) ) {
 											$figcaption .= trim( (string)$multimedia[ $reference ]['caption'] );
@@ -1002,6 +993,36 @@ class NPRAPIWordpress extends NPRAPI {
 									$fightml .= "</div>$figcaption</figure>\n";
 									$body_with_layout .= $fightml;
 								}
+							}
+							break;
+						case 'container' :
+							if ( !empty( $container[ $reference ] ) ) {
+								$thiscon = $container[ $reference ];
+								$figclass = 'npr-container';
+								if ( !empty( $thiscon['colSpan']->value ) && $thiscon['colSpan']->value < 4 ) {
+									$figclass .= ' npr-container-col-1';
+								}
+								$fightml = "<figure class=\"wp-block-embed $figclass\"><div class=\"wp-block-embed__wrapper\">";
+								if ( !empty( $thiscon['title']->value ) ) {
+									$fightml .= "<h2>" . $thiscon['title']->value . "</h2>";
+								}
+								if ( !empty( $thiscon['introText']->value ) ) {
+									$fightml .= "<p>" . $thiscon['introText']->value . "</p>";
+								}
+								if ( !empty( $thiscon['link']->refId ) ) {
+									if ( !empty( $related[ $thiscon['link']->refId ] ) ) {
+										$fightml .= '<p><a href="' . $this->link_extract( $related[ $thiscon['link']->refId ]['link'] ) . '">' . $related[ $thiscon['link']->refId ]['caption']->value . '</a></p>';
+									}
+								}
+								if ( !empty( $thiscon['listText']->refId ) ) {
+									if ( !empty( $listText[ $thiscon['listText']->refId ] ) ) {
+										foreach ( $listText[ $thiscon['listText']->refId ]['paragraphs'] as $lparagraph ) {
+											$fightml .= $lparagraph->value;
+										}
+									}
+								}
+								$fightml .= "</div></figure>\n";
+								$body_with_layout .= $fightml;
 							}
 							break;
 						case 'list' :
@@ -1083,7 +1104,7 @@ class NPRAPIWordpress extends NPRAPI {
 										$cites .= ( !empty( $cites ) ? ' | ' . $thisitem : $thisitem );
 									}
 								}
-								$cites = ( !empty( $cites ) ? "<cite>$cites</cite>" : '' );
+								$cites = ( !empty( $cites ) ? " <cite>$cites</cite>" : '' );
 								$thiscaption .= $cites;
 								$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? "<figcaption>$thiscaption</figcaption>"  : '' );
 								$fightml .= ( !empty( $fightml ) && !empty( $figcaption ) ? $figcaption : '' );
@@ -1107,6 +1128,42 @@ class NPRAPIWordpress extends NPRAPI {
 		if ( isset( $story->correction ) ) {
 			$body_with_layout .= '<p class="correction"><strong>' . $story->correction->correctionTitle->value . ': <em>' . wp_date( get_option( 'date_format' ), strtotime( $story->correction->correctionDate->value ) ) . '</em></strong><br />' . strip_tags( $story->correction->correctionText->value ) .
 			'</p>';
+		}
+		if ( isset( $story->audio ) ) {
+			$audio_file = '';
+			foreach ( (array)$story->audio as $n => $audio ) {
+				if ( $audio->type == 'primary' ) {
+					if ( $audio->permissions->download->allow == 'true' ) {
+						if ( $audio->format->mp3['mp3']->type == 'mp3' ) {
+							$audio_file = $audio->format->mp3['mp3']->value;
+						}
+					} elseif ( $audio->permissions->stream->allow == 'true' ) {
+						if ( !empty( $audio->format->mp3->value ) ) {
+							if ( $audio->format->mp3['m3u']->type == 'm3u' ) {
+								$response = wp_remote_get( $audio->format->mp3['m3u']->value );
+								if ( is_wp_error( $response ) ) {
+									/**
+									 * @var WP_Error $response
+									 */
+									$code = $response->get_error_code();
+									$message = $response->get_error_message();
+									$message = sprintf( 'Error requesting audio m3u via API URL: %s (%s [%d])', $audio->format->mp3['m3u']->value, $message,  $code );
+									error_log( $message );
+									continue;
+								}
+								$audio_file = $response['body'];
+							}
+						} elseif ( !empty( $audio->format->mediastream->value ) ) {
+							$audio_file = str_replace( 'rtmp://flash.npr.org/ondemand/mp3:', 'https://ondemand.npr.org/', $audio->format->mediastream->value );
+						} elseif ( !empty( $audio->format->hlsOnDemand->value ) ) {
+							$audio_file = str_replace( [ 'https://ondemandhls.npr.org/nprhls/', '/master.m3u8' ], [ 'https://ondemand.npr.org/anon.npr-mp3', '.mp3' ], $audio->format->hlsOnDemand->value );
+						}
+					}
+				}
+			}
+			if ( !empty( $audio_file ) ) {
+				$body_with_layout = '[audio mp3="'.$audio_file.'"][/audio]' . "\n" . $body_with_layout;
+			}
 		}
 		if ( $returnary['has_slideshow'] ) {
 			$body_with_layout = '<link rel="stylesheet" href="' . NPRSTORY_PLUGIN_URL . 'assets/css/splide.min.css" />' .

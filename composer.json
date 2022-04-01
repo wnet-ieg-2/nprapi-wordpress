@@ -6,7 +6,7 @@
 	"license"    : "GPL-2.0+",
 	"require": {},
 	"dist": {
-		"url": "https://github.com/OpenPublicMedia/nprapi-wordpress/archive/refs/tags/v1.9.1.zip",
+		"url": "https://github.com/OpenPublicMedia/nprapi-wordpress/archive/refs/tags/v1.9.2.zip",
 		"type": "zip"
 	},
 	"authors": [
@@ -19,12 +19,8 @@
 			"email": "tamw@thirteen.org"
 		},
 		{
-			"name": "NPR DS",
-			"email": "digitalservices@npr.org"
-		},
-		{
-			"name": "INN Labs",
-			"email": "labs@inn.org"
+			"name": "Brian Divver",
+			"email": "bdivver@xpn.org"
 		}
 	]
 }
