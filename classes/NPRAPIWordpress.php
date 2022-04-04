@@ -777,15 +777,16 @@ class NPRAPIWordpress extends NPRAPI {
 				$output = '<p>' . $p . '</p>';
 			} else {
 				if ( strpos( $p, '<div class="storyMajorUpdateDate">' ) !== false ) {
-					$p = str_replace( [ '<div', '</div>' ], [ '<p', '</p>' ], $p );
+					$output = $p;
 				}
 				$output = $p;
 			}
 		} else {
 			if ( strpos( $p, '<div class="fullattribution">' ) !== false ) {
-				$p = str_replace( [ '<div', '</div>' ], [ '</p><p', ''], $p );
+				$output = '<p>' . str_replace( '<div class="fullattribution">', '</p><div class="fullattribution">', $p );
+			} else {
+				$output = '<p>' . $p . '</p>';
 			}
-			$output = '<p>' . $p . '</p>';
 		}
 		return $output;
 	}
