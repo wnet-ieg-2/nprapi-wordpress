@@ -6,7 +6,7 @@ A collection of tools for publishing from and to NPR's Story API. [Find this plu
 - Original developers: NPRDS, INN Labs
 - Requires at least: 3.8.14
 - Tested up to: 5.9.2
-- Stable tag: 1.9.2
+- Stable tag: 1.9.3
 - License: GPLv2
 - License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,11 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+### V1.9.3
+* Fixed a bug where image credit metadata was being attached to the article and not the imported image
+* Added support for the [Co-Authors Plus plugin](https://wordpress.org/plugins/co-authors-plus/), so that guest authors are attached to imported articles if they already exist
+* Fixed a bug that was wrapping `<div>` elements in `<p>` tags
+* Updated the plugin to use the PUSH settings for bylines, story body, and media credits when PULLing as well
 
 ### V1.9.2
 * Added support for `container` elements in stories
