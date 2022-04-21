@@ -865,6 +865,7 @@ class NPRAPIWordpress extends NPRAPI {
 	function get_body_with_layout( $story, $layout ) {
 		$returnary = [ 'body' => FALSE, 'has_layout' => FALSE, 'has_image' => FALSE, 'has_video' => FALSE, 'has_external' => FALSE, 'has_slideshow' => FALSE ];
 		$body_with_layout = "";
+		$use_npr_featured = ( !empty( get_option( 'dp_npr_query_use_featured' ) ) ? TRUE : FALSE );
 		if ( $layout ) {
 			if ( !empty( $story->layout->storytext ) ) {
 				// simplify the arrangement of the storytext object
@@ -1125,6 +1126,9 @@ class NPRAPIWordpress extends NPRAPI {
 							if ( !empty( $storyimages[ $reference ] ) ) {
 								$figclass = "wp-block-image size-large";
 								$thisimg = $storyimages[ $reference ];
+								if ( $thisimg['type'] == 'primary' && $use_npr_featured ) {
+									break;
+								}
 								$fightml = ( !empty( (string)$thisimg['image_url'] ) ? '<img src="' . (string)$thisimg['image_url'] . '"' : '' );
 								if ( !empty( $thisimg['is_portrait'] ) ) {
 									$figclass .= ' alignright';
@@ -1163,7 +1167,9 @@ class NPRAPIWordpress extends NPRAPI {
 			}
 		}
 		if ( isset( $story->correction ) ) {
-			$body_with_layout .= '<p class="correction"><strong>' . $story->correction->correctionTitle->value . ': <em>' . wp_date( get_option( 'date_format' ), strtotime( $story->correction->correctionDate->value ) ) . '</em></strong><br />' . strip_tags( $story->correction->correctionText->value ) .
+			$body_with_layout .= '<p class="correction"><strong>' . $story->correction->correctionTitle->value . ': <em>' .
+				wp_date( get_option( 'date_format' ), strtotime( $story->correction->correctionDate->value ) ) .
+				'</em></strong><br />' . strip_tags( $story->correction->correctionText->value ) .
 			'</p>';
 		}
 		if ( isset( $story->audio ) ) {
