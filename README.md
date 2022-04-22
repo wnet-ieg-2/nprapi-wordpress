@@ -75,6 +75,7 @@ NPR Stories having got gotten
 * Added support for the [Co-Authors Plus plugin](https://wordpress.org/plugins/co-authors-plus/), so that guest authors are attached to imported articles if they already exist
 * Fixed a bug that was wrapping `<div>` elements in `<p>` tags
 * Updated the plugin to use the PUSH settings for bylines, story body, and media credits when PULLing as well
+* Added user setting to ignore primary images when importing articles with rich layout. This will be useful for site themes that automatically display featured images, so that images don't get duplicated (thanks to [@bdivver](https://github.com/bdivver)) [PR #17](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/17)
 
 ### V1.9.2
 * Added support for `container` elements in stories
@@ -88,7 +89,6 @@ NPR Stories having got gotten
 * Removed direct cURL reference, as well as adding proper sanitization and escaping for externally pulled content
 
 ### V1.9
-
 * Document transition from NPR DS ownership to NPR Member Station developers [PR #9](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/9)
 * Set a default category for each query when using the 'post' type [PR #7](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/7)
 * Generate WP posts with rich layout including multimedia etc [PR #4](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/4)
@@ -98,7 +98,6 @@ NPR Stories having got gotten
 
 
 ### V1.8
-
 * Fixes issue preventing pushing to the API, introduced in V1.7. [PR #60](https://github.com/npr/nprapi-wordpress/pull/60) for [issue #57](https://github.com/npr/nprapi-wordpress/issues/57).
 * Fixes issue where images were not properly sideloaded. [PR #60](https://github.com/npr/nprapi-wordpress/pull/60) for [issue #59](https://github.com/npr/nprapi-wordpress/issues/59).
 * Fixes invalid GMT offset error when creating new DateTimeZone object in post metabox. [PR #53](https://github.com/npr/nprapi-wordpress/pull/53) for [issue #52](https://github.com/npr/nprapi-wordpress/issues/52).
@@ -106,7 +105,6 @@ NPR Stories having got gotten
 * Miscellaneous code quality improvements.
 
 ### V1.7
-
 * The Story API box that appears in the post editor has been refreshed:
 	* Instead of requiring a separate action to push the story to the Story API, the content will be pushed whenever the content is saved in WordPress, if the "Send to NPR Story API" box is checked.
 	* The box now includes options to include the story for listening in NPR One, and to set the story as "featured" in NPR One. This feature includes the option to set an expiration date, after which time the story will not appear in NPR One.
@@ -117,7 +115,6 @@ NPR Stories having got gotten
 * Automated tests are now run against an expanded list of WordPress and PHP versions, as described [in pull request #46](https://github.com/npr/nprapi-wordpress/pull/46).
 
 ### V1.6
-
 * Added meta box to post edit page to explicitly push a story to NPR One
 * Added [documentation](https://github.com/nprds/nprapi-wordpress/tree/master/docs)
 * If pushing a story to NPR fails, the error message is displayed on the post edit page
@@ -135,25 +132,21 @@ NPR Stories having got gotten
 * Removed `/wp-admin/includes/admin.php`, `/wp-load.php`, `/wp-includes/class-wp-error.php` from the cron job function, see [4b3d65a](https://github.com/nprds/nprapi-wordpress/pull/19/commits/4b3d65a19122b0da5215997939db94c7accf3e5e) and [cf2dfa3](https://github.com/nprds/nprapi-wordpress/pull/19/commits/cf2dfa39c1f118d0ca0c836d7967e09baec63bd6) - the cron job works without them.
 
 ### V1.5.2
-
 * Adding support for enclosures created as metadata by the PowerPress plugin.
 * Added NPR One checkbox that makes pushed stories available to the NPR One app (unchecked by default).
 * Users were getting a whitescreen when attempting to push posts. The default byline element -- when used with no mapping or co-authors plugin -- was being sent without a tag name, causing a fatal error.)
 * General clean up; small doc tweaks; bug fixes.
 
 ### V1.5.1
-
 * Multiple Bylines for pulled stories -  When an API story has multiple bylines, we will now populate a meta field `npr_multi_byline` with a pipe (|) deliminated list of names.  If the author also has a link for thier byline then there'll be a tilde (~) separating the author's name and the link.
   - An example of data for multiple bylines:
 
 		Ari Shapiro~https://www.npr.org/people/2101154/ari-shapiro|kmoylan@npr.org|Tommy Writer
 
   - Here there are three authors for this story, Ari Shapiro (and his bio link), then "kmoylan@npr.org" and a third author "Tommy Writer". Single author stories will not be changed. (This fix came from Ryan Tainter at KERA. Thanks, Ryan!)
-
 * Do not re-pull stories that are already in draft status - The get multi process would repleatedly re-pull stories into draft mode if there is already a draft copy. This fix will check for `status=any` when checking to see if a story already exists in the WordPress database.
 
 ### V1.5
-
 * Reversed the order of images and audio that are being pushed to the NPR Story API.  We're now sending them in the order the file was created.
 * Mapping of media credit and agency - If you have a field that you are storing image credit and agency, you can now send these to the NPR Story API. In making this change we needed to expose meta fields that begin with an underscore.  So you may see more meta fields visable on the mapping page.
 * Multiple bylines are now being pushed to the NPR Story API if you use the plugin co-author-plus (<https://wordpress.org/plugins/co-authors-plus/>) We insert a byline row for each of the co-authors of a post when we push. You can still use a custom byline field if you want to use that along with the co-authors plugin.
@@ -171,14 +164,12 @@ NPR Stories having got gotten
 * When pushing a story with Audio, the audio description will be pushed as well, provided there is one.
 
 ### V1.4
-
 * Filters for Shortcodes - We've now implemented a hook to a filter that will be used to alter any short codes that a plugin may own in a post before pushing that post to the NPR Story API. The filter (`npr_ds_shortcode_filter`) will fire before we remove shortcodes when we're pushing the post. Any plugin that has shortcodes should alter those shortcodes via this filter to something that's more HTML-friendly, so that other clients can access that information. As an example of what needs to be done in a plugin to take advantage of this new filter please see the branch for the following plugin: <https://github.com/argoproject/navis-documentcloud/tree/kmoylan-filter> What we've done here is write a function `my_documentCloud_filter` that is linked to the filter `npr_ds_shortcode_filter` (all near the bottom of the PHP file).  This function will turn any shortcode created by this plugin into an HTML `<a>` tag to link to what was an embedded document. As with any other filter in WordPress, nothing will happen if you do not have any plugins installed that have implemented the filter. It will be up to any other plugin's maintainer to implement the filter correctly if they wish to take advantage of this functionality.
 * Bulk Push - From the post list page for you NPR Push post type you can now select multiple posts and using the bulk operation dropdown on that page, push the selected posts to the NPR Story API. This should helpful for posts that have been living on a site before the NPR Story API plugin was installed. Note that this will only push a maximum 20 posts at one time.
 * Publish or Draft for Get Multi -  It's now possible for an admin to select Draft or Publish for the posts that come from a query on the get multi page. This way, the return from each query can be reviewed before it's published to a site.
 * Run Get Multi on Demand -  An admin can now select a checkbox if they would like the get multi queries to run when the page is saved. This will allow admins to immediately check queries instead of having to wait for the cron to run.
 
 ### V1.3
-
 * Permissions - If you have created any NPR Story API Permissions Groups you can select which (if any) group you would like to use as your default group when pushing content to the NPR Story API.  Learn more about NPR Story API Permissions Groups here: <https://digitalservices.npr.org/post/npr-api-content-permissions-control>
 * Multi-Site - Cron set up and other activation tasks will now happen on every site in a multi-site configuration.
 * Cron queries - We won't try to query for any of the configured queries on the Get Multi page if the field isn't filled in with data.
@@ -186,12 +177,9 @@ NPR Stories having got gotten
 * Byline URL - We are now saving any links to the author of a story's bio page in the meta field `npr_byline_link`. This should allow you to supply a link for any author who has a biography registered with the NPR Story API.
 
 ### V1.2
-
 * Enhance error messages when there are connectivity or permissions issues with your NPR Story API work. We have also included the ability for admins to map custom Meta fields to certain Post fields that are pushed to the NPR Story API. And finally, we've add the ability to retrieve transcripts for stories that have transcripts associated with them. Along with these changes we've added the the ability to save urls for the .m3u files attached to NPR stories.
 
-
 ### V1.1
-
 This version will allow admins to configure their WordPress site to retrieve multiple NPR Story API stories that will be automatically published (via cron) to their site.
 
 * From the **Settings -> NPR API Get Multi** page (wp-admin/options-general.php?page=ds_npr_api_get_multi_settings) an admin can add a number of queries.
@@ -217,7 +205,6 @@ This version will allow admins to configure their WordPress site to retrieve mul
 * Update and Delete of pushed stories - A story that was written in your Wordpress site and pushed to the NPR Story API will be automatically be updated in the API when your story is updated in Wordpress.  When your Post is moved to the Trash in Wordpress, your story will be deleted from the NPR Story API.  If a Trashed Post is resorted, your story will be made available to the NPR Story API again.
 
 ### V1.0
-
 As not a lot of users have installed the V1.0 of the NPR Story API Plugin, there are a couple of things to keep in mind.
 
 * On the NPR Story API settings page (wp-admin/options-general.php?page=ds_npr_api) there are 4 fields.
@@ -230,5 +217,4 @@ As not a lot of users have installed the V1.0 of the NPR Story API Plugin, there
 ## Upgrade Notice
 
 ### 1.5.2
-
 This version adds export functionality for the NPR One mobile app, in addition to assorted bug fixes.
