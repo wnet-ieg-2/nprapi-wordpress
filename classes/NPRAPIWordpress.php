@@ -1103,7 +1103,7 @@ class NPRAPIWordpress extends NPRAPI {
 														$image_url = $crop->src;
 													}
 												}
-												$fightml .= '<li class="splide__slide"><img data-splide-lazy="' . esc_url( $image_url ) . '" alt="' . esc_attr( $link_text ) . '"><div>' . nprstory_esc_html( $link_text ) . '</div></li>';
+												$fightml .= '<li class="splide__slide"><a href="' . esc_url( $image_url ) . '" target="_blank"><img data-splide-lazy="' . esc_url( $image_url ) . '" alt="' . esc_attr( $link_text ) . '"></a><div>' . nprstory_esc_html( $link_text ) . '</div></li>';
 											}
 										}
 									}
