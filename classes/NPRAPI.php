@@ -6,7 +6,7 @@
  */
 
 /**
- * Defines a class for NPRML creation/transmission and retreival/parsing, for any PHP-based system.
+ * Defines a class for NPRML creation/transmission and retrieval/parsing, for any PHP-based system.
  */
 class NPRAPI {
 
