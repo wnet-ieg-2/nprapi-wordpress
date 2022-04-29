@@ -120,8 +120,6 @@ class DS_NPR_API {
 			$story_id = sanitize_text_field( $_GET['story_id'] );
 		}
 
-
-
 		// try to get the ID of the story from the URL
 		if ( isset( $story_id ) ) {
 			//check to see if we got an ID or a URL
@@ -129,7 +127,7 @@ class DS_NPR_API {
 				if ( strlen( $story_id ) >= 8 ) {
 					$story_id = $story_id;
 				}
-			} else {
+			} elseif ( strpos( $story_id, 'npr.org' ) !== false ) {
 				$story_id = sanitize_url( $story_id );
 				// url format: /yyyy/mm/dd/id
 				// url format: /blogs/name/yyyy/mm/dd/id
@@ -137,6 +135,20 @@ class DS_NPR_API {
 				if ( !is_numeric( $story_id ) ) {
 					// url format: /templates/story/story.php?storyId=id
 					$story_id = preg_replace( '/https?\:\/\/[^\s\/]*npr\.org\/([^&\s\<]*storyId\=([0-9]+)).*/', '$2', $story_id );
+				}
+			} else {
+				$story_id = sanitize_url( $story_id );
+				$meta = get_meta_tags( $story_id );
+				if ( !empty( $meta['brightspot-datalayer'] ) ) {
+					$json = json_decode( html_entity_decode( $meta['brightspot-datalayer'] ), TRUE );
+					if ( !empty( $json['nprStoryId'] ) ) {
+						$story_id = $json['nprStoryId'];
+					}
+				} elseif ( !empty( $meta['story_id'] ) ) {
+					$story_id = $meta['story_id'];
+				} else {
+					nprstory_show_message( "The referenced URL (" . $story_id . ") does not contain a valid NPR Story API ID. Please try again.", TRUE );
+					error_log( "The referenced URL (" . $story_id . ") does not contain a valid NPR Story API ID. Please try again." ); // debug use
 				}
 			}
 		}
