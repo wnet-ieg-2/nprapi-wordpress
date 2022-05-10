@@ -40,7 +40,7 @@ function nprstory_api_get_multi_options_page() {
 function nprstory_add_field_mapping_page() {
 	?>
 	<form action="options.php" method="post">
-		<div><p>Use this page to map your custom WordPress Meta fields to fields sent the NPR API. Clicking the <strong>Use Custom Settings</strong> checkbox will enable these mappings. If you wish to use the default mapping for a field, select &mdash; default &mdash; and we will use the obvious WordPress field.</p><p>Select for the Meta fields for the <strong><?php echo nprstory_get_push_post_type(); ?></strong> post type.</p></div>
+		<div><p>Use this page to map your custom WordPress Meta fields to fields sent to the NPR API, and vice versa. Clicking the <strong>Use Custom Settings</strong> checkbox will enable these mappings. If you wish to use the default mapping for a field, select &mdash; default &mdash; and we will use the obvious WordPress field.</p><p>Select for the Meta fields for the <strong><?php echo nprstory_get_push_post_type(); ?></strong> post type.</p></div>
 		<?php
 			settings_fields( 'ds_npr_api_push_mapping' );
 			//do_settings_section('ds_npr_api_push_mapping');
