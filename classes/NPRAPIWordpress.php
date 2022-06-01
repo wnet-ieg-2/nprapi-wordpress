@@ -1113,9 +1113,23 @@ class NPRAPIWordpress extends NPRAPI {
 									}
 									$fightml .= '</figure>';
 								} elseif ( strtolower( $thiscol['displayType'] ) == "simple story" ) {
-									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><ul>';
+									$fightml .= '<figure class="wp-block-embed"><div class="wp-block-embed__wrapper"><h2>' . $thiscol['title']->value . '</h2><ul>';
 									foreach ( $thiscol['member'] as $cmem ) {
-										$fightml .= '<li><a href="' . $cmem['url'] . '" target="_blank">"' . $cmem['title']->value . '"</a>"' . $cmem['introText']->value . '"</li>';
+										$c_member = $members[ $cmem->refId ];
+										$fightml .= '<li><h3>';
+										if ( !empty( $c_member['link'] ) ) {
+											$fightml .= '<a href="' . $c_member['link']->value . '" target="_blank">';
+										}
+										$fightml .= $c_member['title']->value;
+										if ( !empty( $c_member['link'] ) ) {
+											$fightml .= '</a>';
+										}
+										$fightml .= '</h3>';
+										if ( !empty( $c_member['image'] ) ) {
+											$c_member_image = $storyimages[ $c_member['image']->refId ];
+											$fightml .= '<img src="' . $c_member_image['image_url'] . '" alt="' . $c_member_image['title']->value . '" loading="lazy" />';
+										}
+										$fightml .= $c_member['introText']->value . '</li>';
 									}
 									$fightml .= '</ul></div></figure>';
 								}

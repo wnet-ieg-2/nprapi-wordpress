@@ -4,7 +4,7 @@ Donate link: https://www.npr.org/series/750002/support-public-radio
 Tags: npr, news, public radio, api
 Requires at least: 3.8.14
 Tested up to: 6.0
-Stable tag: 1.9.3
+Stable tag: 1.9.3.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: nprapi
@@ -70,6 +70,8 @@ NPR Stories having got gotten
 
 
 == Changelog ==
+= V1.9.3.1 =
+* Fixed bug that was preventing display of Simple Story elements in imported stories
 
 = V1.9.3 =
 * Fixed a bug where image credit metadata was being attached to the article and not the imported image
