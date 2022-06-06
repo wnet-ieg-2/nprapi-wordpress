@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NPR Story API
  * Description: A collection of tools for reusing content from NPR.org, now maintained and updated by NPR member station developers
- * Version: 1.9.3
+ * Version: 1.9.3.1
  * Author: Open Public Media
  * License: GPLv2
 */
@@ -211,3 +211,50 @@ function nprstory_error_log( $thing ) {
 function nprstory_esc_html( $string ) {
 	return html_entity_decode( esc_html( $string ), ENT_QUOTES );
 }
+
+function nprstory_add_header_meta() {
+	global $wp_query;
+	if ( !is_home() && !is_404() &&
+		( get_post_type() === get_option( 'ds_npr_pull_post_type' ) || get_post_type() === get_option( 'ds_npr_push_post_type' ) )
+	) {
+		$id = $wp_query->queried_object_id;
+		$npr_story_id = get_post_meta( $id, 'npr_story_id', 1 );
+		if ( !empty( $npr_story_id ) ) {
+			$has_audio = ( preg_match( '/\[audio/', $wp_query->post->post_content ) ? 1 : 0 );
+			$word_count = str_word_count( strip_tags( $wp_query->post->post_content ) );
+			$byline = '';
+			$npr_retrieved_story = get_post_meta( $id, 'npr_retrieved_story', 1 );
+			if ( $npr_retrieved_story == 1 ) {
+				$byline = get_post_meta( $id, 'npr_byline', 1 );
+			} elseif ( function_exists( 'get_coauthors' ) ) {
+				$byline = coauthors( ', ', ', ', '', '', false );
+			} else {
+				$byline = get_the_author_meta( 'display_name', $wp_query->post->post_author );
+			}
+			$head_categories = get_the_category( $id );
+			$head_tags = wp_get_post_tags( $id );
+			$keywords = [];
+			foreach( $head_categories as $hcat ) :
+				$keywords[] = $hcat->name;
+			endforeach;
+			foreach( $head_tags as $htag ) :
+				$keywords[] = $htag->name;
+			endforeach;
+			$primary_cat = get_post_meta( $id, 'epc_primary_category', true );
+			if ( empty( $primary_cat ) ) {
+				$primary_cat = $keywords[0];
+			} ?>
+		<meta name="datePublished" content="<?php echo get_the_date( 'c', $id ); ?>" />
+		<meta name="story_id" content="<?php echo $npr_story_id; ?>" />
+		<meta name="has_audio" content="<?php echo $has_audio; ?>" />
+		<meta name="org_id" content="<?php echo get_option( 'ds_npr_api_org_id' ); ?>" />
+		<meta name="category" content="<?php echo $primary_cat; ?>" />
+		<meta name="author" content="<?php echo $byline; ?>" />
+		<meta name="programs" content="none" />
+		<meta name="wordCount" content="<?php echo $word_count; ?>" />
+		<meta name="keywords" content="<?php echo implode( ',', $keywords ); ?>" />
+<?php
+		}
+	}
+}
+add_action( 'wp_head', 'nprstory_add_header_meta', 100 );
