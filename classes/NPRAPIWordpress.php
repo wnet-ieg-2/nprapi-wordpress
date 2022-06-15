@@ -1149,7 +1149,7 @@ class NPRAPIWordpress extends NPRAPI {
 									$fightml .= " width=200";
 								}
 								$thiscaption = ( !empty( trim( (string)$thisimg['caption'] ) ) ? trim( (string)$thisimg['caption'] ) : '' );
-								$fightml .= ( !empty( $fightml ) && !empty( $thiscaption ) ? ' alt="' . strip_tags( $thiscaption ) . '"' : '' );
+								$fightml .= ( !empty( $fightml ) && !empty( $thiscaption ) ? ' alt="' . str_replace( '"', '\'', strip_tags( $thiscaption ) ) . '"' : '' );
 								$fightml .= ( !empty( $fightml ) ? '>' : '' );
 								$figcaption = ( !empty( $fightml ) && !empty( $thiscaption ) ? $thiscaption  : '' );
 								$cites = '';
