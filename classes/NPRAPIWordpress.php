@@ -363,13 +363,29 @@ class NPRAPIWordpress extends NPRAPI {
 								$image_url = $image->src;
 							}
 							nprstory_error_log( 'Got image from: ' . $image_url );
+
+							$imagep_url_parse = parse_url( $image_url );
+							$imagep_url_parts = pathinfo( $imagep_url_parse['path'] );
+							if ( !empty( $attached_images ) ) {
+								foreach( $attached_images as $att_image ) {
+									// see if the filename is very similar
+									$attach_url = wp_get_attachment_url( $att_image->ID );
+									$attach_url_parse = parse_url( $attach_url );
+									$attach_url_parts = pathinfo( $attach_url_parse['path'] );
+
+									// so if the already attached image name is part of the name of the file
+									// coming in, ignore the new/temp file, it's probably the same
+									if ( strtolower( $attach_url_parts['filename'] ) === strtolower( $imagep_url_parts['filename'] ) ) {
+										continue;
+									}
+								}
+							}
+
 							// Download file to temp location
 							$tmp = download_url( $image_url );
 
 							// Set variables for storage
-							// fix file filename for query strings
-							preg_match( '/[^\?]+\.(jpg|JPG|jpe|JPE|jpeg|JPEG|gif|GIF|png|PNG)/', $image_url, $matches );
-							$file_array['name'] = basename( $matches[0] );
+							$file_array['name'] = $imagep_url_parts['filename'];
 							$file_array['tmp_name'] = $tmp;
 
 							$file_OK = TRUE;
@@ -387,28 +403,6 @@ class NPRAPIWordpress extends NPRAPI {
 							if ( is_wp_error( $image_upload_id ) ) {
 								@unlink( $file_array['tmp_name'] );
 								$file_OK = FALSE;
-							} else {
-								$image_post = get_post( $image_upload_id );
-								if ( !empty( $attached_images ) ) {
-									foreach( $attached_images as $att_image ) {
-										// see if the filename is very similar
-										// $att_guid = explode( '.', $att_image->guid );
-										$attach_url = wp_get_attachment_url( $att_image->ID );
-										$attach_url_parse = parse_url( $attach_url );
-										$attach_url_parts = pathinfo( $attach_url_parse['path'] );
-
-										$imagep_attach_url = wp_get_attachment_url( $image_post->ID );
-										$imagep_url_parse = parse_url( $imagep_attach_url );
-										$imagep_url_parts = pathinfo( $imagep_url_parse['path'] );
-										// so if the already attached image name is part of the name of the file
-										// coming in, ignore the new/temp file, it's probably the same
-										if ( strtolower( $attach_url_parts['filename'] ) == strtolower( $imagep_url_parts['filename'] ) ) {
-											@unlink( $file_array['tmp_name'] );
-											wp_delete_attachment( $image_upload_id );
-											$file_OK = FALSE;
-										}
-									}
-								}
 							}
 
 							//set the primary image
