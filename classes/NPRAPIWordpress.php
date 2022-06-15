@@ -385,7 +385,7 @@ class NPRAPIWordpress extends NPRAPI {
 							$tmp = download_url( $image_url );
 
 							// Set variables for storage
-							$file_array['name'] = $imagep_url_parts['filename'];
+							$file_array['name'] = $imagep_url_parts['basename'];
 							$file_array['tmp_name'] = $tmp;
 
 							$file_OK = TRUE;
