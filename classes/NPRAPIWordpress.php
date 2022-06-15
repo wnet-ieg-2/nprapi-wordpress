@@ -369,7 +369,7 @@ class NPRAPIWordpress extends NPRAPI {
 							if ( !empty( $attached_images ) ) {
 								foreach( $attached_images as $att_image ) {
 									// see if the filename is very similar
-									$attach_url = wp_get_attachment_url( $att_image->ID );
+									$attach_url = wp_get_original_image_url( $att_image->ID );
 									$attach_url_parse = parse_url( $attach_url );
 									$attach_url_parts = pathinfo( $attach_url_parse['path'] );
 
