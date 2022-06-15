@@ -6,7 +6,7 @@ A collection of tools for publishing from and to NPR's Story API. [Find this plu
 - Original developers: NPRDS, INN Labs
 - Requires at least: 3.8.14
 - Tested up to: 6.0
-- Stable tag: 1.9.3.1
+- Stable tag: 1.9.4
 - License: GPLv2
 - License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,10 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+### V1.9.4
+* Changed `nprstory_get_datetimezone()` to generate a new `DateTimeZone` off of the `timezone_string` WP option. The previous method tried to use `gmt_offset` in seconds, but `DateTimeZone` requires a string
+* Fixed an issue where inserted images in imported stories might have quotation marks in their alt tags
+
 ### V1.9.3.1
 * Fixed bug that was preventing display of Simple Story elements in imported stories
 

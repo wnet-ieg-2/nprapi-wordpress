@@ -677,31 +677,22 @@ function nprstory_get_post_expiry_datetime( $post ) {
 /**
  * Helper for getting WordPress GMT offset
  *
- * It turns out we don't need to do anything with regards to get_option( 'timezone_string' ),
- * because WordPress includes wp_timezone_override_offset as a default filter upon
- * the filter pre_option_gmt_offset
+ * Changing this function to send get_option( 'timezone_string' ) to DateTimeZone
+ * because the previous version was converting this to a number of seconds, but
+ * DateTimeZone requires a string in the constructor. If get_option( 'timezone_string' )
+ * is empty, it defaults to '+0000' which is Greenwich Mean Time.
  *
- * @since 1.7.2
- * @link https://github.com/npr/nprapi-wordpress/issues/52
+ * @since 1.9.4
  * @return DateTimeZone
  */
 function nprstory_get_datetimezone() {
-	$timezone = get_option( 'gmt_offset' );
-
-	if ( is_numeric( $timezone ) ) {
-		// Because PHP handles timezone offsets for this purpose in seconds,
-		// (at least, according to https://secure.php.net/manual/en/datetimezone.getoffset.php)
-		// we must convert the WordPress-stored decimal hours into seconds. This value can be positive, negative, or zero.
-		$offset = floatval( $timezone ) * HOUR_IN_SECONDS;
-	} // It could also be '' empty string, which is a valid offset for the purposes of DateTimeZone::__construct().
-
+	$offset = get_option( 'timezone_string', '+0000' );
 	try {
 		$return = new DateTimeZone( $offset );
 	} catch( Exception $e ) {
 		nprstory_error_log( $e->getMessage() );
-		$return = new DateTimeZone( '+0000' ); // The default timezone when WordPress does not have a configured timezone. This will also trigger when the gmt_offset is '0', which is the case when the GMT time is Greenwich Mean Time.
+		$return = new DateTimeZone( '+0000' );
 	}
-
 	return $return;
 }
 
