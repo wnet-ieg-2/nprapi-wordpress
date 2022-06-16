@@ -366,7 +366,6 @@ class NPRAPIWordpress extends NPRAPI {
 
 							$imagep_url_parse = parse_url( $image_url );
 							$imagep_url_parts = pathinfo( $imagep_url_parse['path'] );
-							$attach_match = false;
 							if ( !empty( $attached_images ) ) {
 								foreach( $attached_images as $att_image ) {
 									// see if the filename is very similar
@@ -377,12 +376,9 @@ class NPRAPIWordpress extends NPRAPI {
 									// so if the already attached image name is part of the name of the file
 									// coming in, ignore the new/temp file, it's probably the same
 									if ( strtolower( $attach_url_parts['filename'] ) === strtolower( $imagep_url_parts['filename'] ) ) {
-										$attach_match = true;
+										continue 2;
 									}
 								}
-							}
-							if ( $attach_match ) {
-								continue;
 							}
 
 							// Download file to temp location
