@@ -73,6 +73,7 @@ NPR Stories having got gotten
 = V1.9.4 =
 * Changed `nprstory_get_datetimezone()` to generate a new `DateTimeZone` off of the `timezone_string` WP option. The previous method tried to use `gmt_offset` in seconds, but `DateTimeZone` requires a string
 * Fixed an issue where inserted images in imported stories might have quotation marks in their alt tags
+* Fixed an issue where images were being duplicated while sideloading (all credit to [@tamw-wnet](https://github.com/tamw-wnet) for the catch) [Issue #18](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/18)
 
 = V1.9.3.1 =
 * Fixed bug that was preventing display of Simple Story elements in imported stories
