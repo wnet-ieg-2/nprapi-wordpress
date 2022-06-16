@@ -376,7 +376,7 @@ class NPRAPIWordpress extends NPRAPI {
 									// so if the already attached image name is part of the name of the file
 									// coming in, ignore the new/temp file, it's probably the same
 									if ( strtolower( $attach_url_parts['filename'] ) === strtolower( $imagep_url_parts['filename'] ) ) {
-										continue;
+										continue 2;
 									}
 								}
 							}
