@@ -407,7 +407,11 @@ class NPRAPIWordpress extends NPRAPI {
 
 							//set the primary image
 							if ( $image->type == 'primary' && $file_OK ) {
-								add_post_meta( $post_id, '_thumbnail_id', $image_upload_id, true );
+                $current_thumbnail_id = get_post_thumbnail_id($post_id); 
+                if (!empty($current_thumbnail_id) && $current_thumbnail_id != $image_upload_id) {
+                  delete_post_thumbnail($post_id);
+                }
+                set_post_thumbnail( $post_id, $image_upload_id);
 								//get any image meta data and attatch it to the image post
 								if ( NPR_IMAGE_CREDIT_META_KEY === NPR_IMAGE_AGENCY_META_KEY ) {
 									$image_credits = [ $image->producer->value, $image->provider->value ];
