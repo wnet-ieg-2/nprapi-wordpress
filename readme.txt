@@ -4,7 +4,7 @@ Donate link: https://www.npr.org/series/750002/support-public-radio
 Tags: npr, news, public radio, api
 Requires at least: 3.8.14
 Tested up to: 6.0
-Stable tag: 1.9.4
+Stable tag: 1.9.4.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: nprapi
@@ -70,6 +70,9 @@ NPR Stories having got gotten
 
 
 == Changelog ==
+= V1.9.4.1 =
+* Fixed an issue where updating imported articles was not also updating the post thumbnail (all credit to [@tamw-wnet](https://github.com/tamw-wnet) for the catch) [Issue #19](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/19)
+
 = V1.9.4 =
 * Changed `nprstory_get_datetimezone()` to generate a new `DateTimeZone` off of the `timezone_string` WP option. The previous method tried to use `gmt_offset` in seconds, but `DateTimeZone` requires a string
 * Fixed an issue where inserted images in imported stories might have quotation marks in their alt tags
