@@ -632,10 +632,12 @@ class NPRAPIWordpress extends NPRAPI {
 		$error_text = '';
 		$org_id = get_option( 'ds_npr_api_org_id' );
 		if ( !empty( $org_id ) ) {
-			$url = add_query_arg( [
+			$args = [
 				'orgId'  => $org_id,
 				'apiKey' => get_option( 'ds_npr_api_key' )
-			], get_option( 'ds_npr_api_push_url' ) . '/story' );
+			];
+			$args = apply_filters( 'npr_pre_article_push', $args, $post_ID );
+			$url = add_query_arg( $args, get_option( 'ds_npr_api_push_url' ) . '/story' );
 
 			nprstory_error_log( 'Sending nprml = ' . $nprml );
 
@@ -686,11 +688,13 @@ class NPRAPIWordpress extends NPRAPI {
 	 * @param  $api_id
 	 */
 	function send_delete( $api_id ) {
-		$url = add_query_arg( [
+		$args = [
 			'orgId'  => get_option( 'ds_npr_api_org_id' ),
 			'apiKey' => get_option( 'ds_npr_api_key' ),
 			'id' => $api_id
-		], get_option( 'ds_npr_api_push_url' ) . '/story' );
+		];
+		$args = apply_filters( 'npr_pre_article_delete', $args );
+		$url = add_query_arg( $args, get_option( 'ds_npr_api_push_url' ) . '/story' );
 
 		$result = wp_remote_request( $url, [ 'method' => 'DELETE' ] );
 		$body = wp_remote_retrieve_body( $result );
