@@ -117,14 +117,15 @@ class NPRAPIWordpress extends NPRAPI {
 					'meta_value' => $story->id,
 					'post_type' => $pull_post_type,
 					'post_status' => 'any',
-          'no_found_rows' => true
+          				'no_found_rows' => true
 				]);
 
 				// set the mod_date and pub_date to now so that for a new story we will fail the test below and do the update
 				$post_mod_date = strtotime( date( 'Y-m-d H:i:s' ) );
 				$post_pub_date = $post_mod_date;
 				$cats = [];
-				if ( $exists->found_posts ) {
+				// BS: no_found_rows doesnt return $exists->found_posts, so use $exists->posts.
+				if ( $exists->posts ) {
 					$existing = $exists->post;
 					$post_id = $existing->ID;
 					$existing_status = $exists->posts[0]->post_status;
