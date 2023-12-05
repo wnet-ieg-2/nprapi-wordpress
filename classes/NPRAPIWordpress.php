@@ -116,14 +116,16 @@ class NPRAPIWordpress extends NPRAPI {
 					'meta_key' => NPR_STORY_ID_META_KEY,
 					'meta_value' => $story->id,
 					'post_type' => $pull_post_type,
-					'post_status' => 'any'
+					'post_status' => 'any',
+          				'no_found_rows' => true
 				]);
 
 				// set the mod_date and pub_date to now so that for a new story we will fail the test below and do the update
 				$post_mod_date = strtotime( date( 'Y-m-d H:i:s' ) );
 				$post_pub_date = $post_mod_date;
 				$cats = [];
-				if ( $exists->found_posts ) {
+				// BS: no_found_rows doesnt return $exists->found_posts, so use $exists->posts.
+				if ( $exists->posts ) {
 					$existing = $exists->post;
 					$post_id = $existing->ID;
 					$existing_status = $exists->posts[0]->post_status;
@@ -336,28 +338,34 @@ class NPRAPIWordpress extends NPRAPI {
 							// check the <enlargement> and then the crops, in this order "enlargement", "standard"  if they don't exist, just get the image->src
 							if ( !empty( $image->enlargement ) ) {
 								$image_url = $image->enlargement->src;
-							} else {
-								if ( !empty( $image->crop ) && is_array( $image->crop ) ) {
+							} 
+							if ( !empty( $image->crop ) && is_array( $image->crop ) ) {
+								foreach ( $image->crop as $crop ) {
+									if ( empty( $crop->type ) ) {
+										continue;
+									}
+									if ( 'enlargement' === $crop->type ) {
+										$image_url = $crop->src;
+                    // sometimes enlargements are much larger than needed
+                    if ( ( 1500 < $crop->height ) || ( 2000 < $crop->width ) ){
+                      // if there's no querystring already, add s=6 which media.npr.org resizes to a usable but large size
+                      if ( strpos( $image_url, "?" ) === false ) {
+                        $image_url .= "?s=6";
+                      }
+                    }
+									}
+								}
+								if ( empty( $image_url ) ) {
 									foreach ( $image->crop as $crop ) {
 										if ( empty( $crop->type ) ) {
 											continue;
 										}
-										if ( 'enlargement' === $crop->type ) {
+										if ( 'standard' === $crop->type ) {
 											$image_url = $crop->src;
 										}
 									}
-									if ( empty( $image_url ) ) {
-										foreach ( $image->crop as $crop ) {
-											if ( empty( $crop->type ) ) {
-												continue;
-											}
-											if ( 'standard' === $crop->type ) {
-												$image_url = $crop->src;
-											}
-										}
-									}
 								}
-							}
+						  }
 
 							if ( empty( $image_url ) && !empty( $image->src ) ) {
 								$image_url = $image->src;
@@ -632,10 +640,12 @@ class NPRAPIWordpress extends NPRAPI {
 		$error_text = '';
 		$org_id = get_option( 'ds_npr_api_org_id' );
 		if ( !empty( $org_id ) ) {
-			$url = add_query_arg( [
+			$args = [
 				'orgId'  => $org_id,
 				'apiKey' => get_option( 'ds_npr_api_key' )
-			], get_option( 'ds_npr_api_push_url' ) . '/story' );
+			];
+			$args = apply_filters( 'npr_pre_article_push', $args, $post_ID );
+			$url = add_query_arg( $args, get_option( 'ds_npr_api_push_url' ) . '/story' );
 
 			nprstory_error_log( 'Sending nprml = ' . $nprml );
 
@@ -686,11 +696,13 @@ class NPRAPIWordpress extends NPRAPI {
 	 * @param  $api_id
 	 */
 	function send_delete( $api_id ) {
-		$url = add_query_arg( [
+		$args = [
 			'orgId'  => get_option( 'ds_npr_api_org_id' ),
 			'apiKey' => get_option( 'ds_npr_api_key' ),
 			'id' => $api_id
-		], get_option( 'ds_npr_api_push_url' ) . '/story' );
+		];
+		$args = apply_filters( 'npr_pre_article_delete', $args );
+		$url = add_query_arg( $args, get_option( 'ds_npr_api_push_url' ) . '/story' );
 
 		$result = wp_remote_request( $url, [ 'method' => 'DELETE' ] );
 		$body = wp_remote_retrieve_body( $result );
