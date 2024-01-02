@@ -74,7 +74,7 @@ class NPRAPIWordpress extends NPRAPI {
 				if ( $response['body'] ) {
 					$this->xml = $response['body'];
 				} else {
-					$this->notice[] = __( 'No data available.' );
+					$this->notices[] = __( 'No data available.' );
 				}
 			} else {
 				nprstory_show_message( 'An error occurred pulling your story from the NPR API.  The API responded with message =' . $response['response']['message'], TRUE );
@@ -117,14 +117,13 @@ class NPRAPIWordpress extends NPRAPI {
 					'meta_value' => $story->id,
 					'post_type' => $pull_post_type,
 					'post_status' => 'any',
-          				'no_found_rows' => true
+					'no_found_rows' => true
 				]);
 
 				// set the mod_date and pub_date to now so that for a new story we will fail the test below and do the update
 				$post_mod_date = strtotime( date( 'Y-m-d H:i:s' ) );
 				$post_pub_date = $post_mod_date;
 				$cats = [];
-				// BS: no_found_rows doesnt return $exists->found_posts, so use $exists->posts.
 				if ( $exists->posts ) {
 					$existing = $exists->post;
 					$post_id = $existing->ID;
@@ -338,7 +337,7 @@ class NPRAPIWordpress extends NPRAPI {
 							// check the <enlargement> and then the crops, in this order "enlargement", "standard"  if they don't exist, just get the image->src
 							if ( !empty( $image->enlargement ) ) {
 								$image_url = $image->enlargement->src;
-							} 
+							}
 							if ( !empty( $image->crop ) && is_array( $image->crop ) ) {
 								foreach ( $image->crop as $crop ) {
 									if ( empty( $crop->type ) ) {
@@ -346,13 +345,13 @@ class NPRAPIWordpress extends NPRAPI {
 									}
 									if ( 'enlargement' === $crop->type ) {
 										$image_url = $crop->src;
-                    // sometimes enlargements are much larger than needed
-                    if ( ( 1500 < $crop->height ) || ( 2000 < $crop->width ) ){
-                      // if there's no querystring already, add s=6 which media.npr.org resizes to a usable but large size
-                      if ( strpos( $image_url, "?" ) === false ) {
-                        $image_url .= "?s=6";
-                      }
-                    }
+										// sometimes enlargements are much larger than needed
+										if ( ( 1500 < $crop->height ) || ( 2000 < $crop->width ) ) {
+											// if there's no querystring already, add s=6 which media.npr.org resizes to a usable but large size
+											if ( strpos( $image_url, "?" ) === false ) {
+												$image_url .= "?s=6";
+											}
+										}
 									}
 								}
 								if ( empty( $image_url ) ) {
@@ -365,7 +364,7 @@ class NPRAPIWordpress extends NPRAPI {
 										}
 									}
 								}
-						  }
+							}
 
 							if ( empty( $image_url ) && !empty( $image->src ) ) {
 								$image_url = $image->src;
@@ -749,7 +748,7 @@ class NPRAPIWordpress extends NPRAPI {
 	 * This function will check a story to see if there are transcripts that should go with it, if there are
 	 * we'll return the transcript as one big string with Transcript at the top and each paragraph separated by <p>
 	 *
-	 * @param string $story
+	 * @param object $story
 	 * @return string
 	 */
 	function get_transcript_body( $story ) {
@@ -881,7 +880,10 @@ class NPRAPIWordpress extends NPRAPI {
 				// simplify the arrangement of the storytext object
 				$layoutarry = [];
 				foreach( $story->layout->storytext as $type => $elements ) {
-					if ( !is_array( $elements ) ) {
+					if ( $elements === null ) {
+						continue;
+					}
+                    if ( !is_array( $elements ) ) {
 						$elements = [ $elements ];
 					}
 					foreach ( $elements as $element ) {
