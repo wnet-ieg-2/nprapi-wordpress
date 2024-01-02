@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NPR Story API
  * Description: A collection of tools for reusing content from NPR.org, now maintained and updated by NPR member station developers
- * Version: 1.9.4.1
+ * Version: 1.9.5.2
  * Author: Open Public Media
  * License: GPLv2
 */
@@ -258,3 +258,30 @@ function nprstory_add_header_meta() {
 	}
 }
 add_action( 'wp_head', 'nprstory_add_header_meta', 100 );
+
+// add_action('admin_notices', 'nprstory_cds_plugin_admin_notice');
+
+function nprstory_cds_plugin_admin_notice() {
+	global $pagenow;
+	$display = false;
+	// Only show this message on the admin dashboard and if asked for
+	if ( $pagenow === 'index.php' ) {
+		$display = true;
+	} elseif ( !empty( $_GET['page'] ) ) {
+		if ( str_contains( $_GET['page'], 'npr-' ) || str_contains( $_GET['page'], 'npr_' ) ) {
+			$display = true;
+		}
+	} elseif ( !empty( $_GET['post_type'] ) ) {
+		if ( str_contains( $_GET['post_type'], 'npr-' ) || str_contains( $_GET['post_type'], 'npr_' ) ) {
+			$display = true;
+		}
+	}
+	if ( $display ) { ?>
+		<div class="notice notice-warning">
+			<h2><?php _e( 'The NPR Story API plugin is going away!', 'ds_npr_api' ); ?></h2>
+			<p><?php _e( 'In the coming months, the NPR Story API will be sunset in favor of the NPR Content Distribution System (CDS). The same great content, but with greater flexibility, a more modern architecture, and richer media support.', 'ds_npr_api' ); ?></p>
+			<p><?php _e( 'While the Story API will continue to function for some time, we encourage you to try out the new NPR CDS Plugin. Be sure to file a ticket in NPR Studio to get your authorization token and station information.', 'ds_npr_api' ); ?></p>
+		</div>
+<?php
+	}
+}

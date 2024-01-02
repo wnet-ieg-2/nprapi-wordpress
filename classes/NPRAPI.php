@@ -21,6 +21,13 @@ class NPRAPI {
 	const NPRML_NAMESPACE = 'xmlns:nprml=https://api.npr.org/nprml';
 	const NPRML_VERSION = '0.92.2';
 
+	public $request;
+	public $response;
+	public $xml;
+	public $notices;
+	public $message;
+	public $stories;
+
 	/**
 	 * Initializes an NPRML object.
 	 */
@@ -289,13 +296,24 @@ class NPRAPI {
  * Basic OOP container for NPR entity (story, author, etc.).
  */
 class NPRMLEntity {
-
+	public $textWithHtml;
+	public $body;
+	public $layout;
+	public $image;
+	public $htmlAsset;
+	public $id;
+	public $correction;
+	public $audio;
 }
 
 /**
  * Basic OOP container for NPRML element.
  */
 class NPRMLElement {
+	public $value;
+	public $paragraphs;
+	public $mp3;
+	public $type;
 	function __toString() {
 		return $this->value;
 	}

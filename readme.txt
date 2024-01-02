@@ -4,7 +4,7 @@ Donate link: https://www.npr.org/series/750002/support-public-radio
 Tags: npr, news, public radio, api
 Requires at least: 3.8.14
 Tested up to: 6.0
-Stable tag: 1.9.4.1
+Stable tag: 1.9.5.2
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: nprapi
@@ -70,6 +70,14 @@ NPR Stories having got gotten
 
 
 == Changelog ==
+= V1.9.5.1 =
+* Adding `'no_found_posts' => false` to the query in `update_posts_from_stories()` for greater MySQL 8 compatability. Will also help on sites with large archives of posts
+* Adding support for admin messaging regarding the sunsetting of the NPR Story API and this plugin. Will actually roll the messaging out once the successor plugin (NPR CDS) is available in the plugin directory
+
+= V1.9.5 =
+* Added a check for image dimensions for imported article thumbnails, and use NPR resizer if necessary (credit to [@tamw-wnet](https://github.com/tamw-wnet) for the catch and PR) [PR #22](https://github.com/OpenPublicMedia/nprapi-wordpress/pull/22)
+* Added filter `npr_pre_article_push` to allow for modifying the organization ID or API key before pushing an article. Example: if you run a site with more than one org ID in the Story API and you want certain categories to push to certain IDs, you can create a function to hook into that filter and modify the org ID and API key as needed
+
 = V1.9.4.1 =
 * Fixed an issue where updating imported articles was not also updating the post thumbnail (all credit to [@tamw-wnet](https://github.com/tamw-wnet) for the catch) [Issue #19](https://github.com/OpenPublicMedia/nprapi-wordpress/issues/19)
 
