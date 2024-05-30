@@ -6,7 +6,8 @@ A collection of tools for publishing from and to NPR's Story API. [Find this plu
 - Original developers: NPRDS, INN Labs
 - Requires at least: 3.8.14
 - Tested up to: 6.4.1
-- Stable tag: 1.9.6
+- Version: 1.9.7
+- Stable tag: 1.9.7
 - License: GPLv2
 - License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +71,15 @@ NPR Stories having got gotten
 ## Changelog
 
 <!-- copy from readme.txt to here -->
+### V1.9.7
+* Updated ID pattern matching on get_stories.php to accommodate NPR's new alphanumeric IDs
+
+### V1.9.6.2
+* Fixed a potentially fatal error when trying to pull a Story API ID from a blank URL
+
+### V1.9.6.1
+* Added messaging about the eventual retirement of the Story API with links to the newly launched CDS plugin
+
 ### V1.9.6
 * Articles imported from the API will now show the original article URL as the canonical URL in the header
 
